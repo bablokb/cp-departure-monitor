@@ -6,3 +6,4 @@ lib
 *secrets.py
 __pycache__
 *settings.py
+.venv
