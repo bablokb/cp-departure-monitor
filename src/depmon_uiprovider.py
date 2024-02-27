@@ -100,7 +100,7 @@ class DepmonUIProvider:
 
     self._footer = PanelText(text=UI_SETTINGS.FOOTER + self._get_upd_time(),
                              fontname=UI_SETTINGS.FONT,
-                             justify=Justify.RIGHT)
+                             justify=Justify.LEFT)
     self._panel = DataPanel(
       x = offset,
       y = offset,
