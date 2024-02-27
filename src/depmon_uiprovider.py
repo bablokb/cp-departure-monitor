@@ -30,12 +30,13 @@ class DepmonUIProvider:
     """ constructor: create ressources """
 
     # grid: time,delay,line,direction
-    self._dim = (UI_SETTINGS.ROWS,4)
-    self._view  = None
-    self._panel = None
-    self._model = None
-    self._name  = None
-
+    self._dim    = (UI_SETTINGS.ROWS,4)
+    self._view   = None
+    self._panel  = None
+    self._model  = None
+    self._name   = None
+    self._update = None
+    
   # --- update data   --------------------------------------------------------
 
   def update_data(self,new_data):
@@ -43,9 +44,10 @@ class DepmonUIProvider:
 
     # update model (only first station for now)
     station = app_config.stations[0][0]
-    info = new_data["departures"][station].info
-    self._name = new_data["departures"][station].name
-    self._model = []
+    info         = new_data["departures"][station].info
+    self._name   = new_data["departures"][station].name
+    self._update = new_data["departures"][station].update
+    self._model  = []
     for index,record in enumerate(info):
       if index == UI_SETTINGS.ROWS:
         # use at most ROWS records until we support paging
@@ -56,6 +58,14 @@ class DepmonUIProvider:
       for _ in range(4*(self._dim[0]-len(info))):
         self._model.append("")
 
+  # --- pretty print update   ------------------------------------------------
+
+  def _get_upd_time(self):
+    """ pretty print update time """
+
+    ts = time.localtime(self._update)
+    return f"{ts.tm_hour}:{ts.tm_min}:{ts.tm_sec}"
+
   # --- create complete content   --------------------------------------------
 
   def create_content(self,display):
@@ -63,6 +73,7 @@ class DepmonUIProvider:
 
     if self._panel:
       self._title.text = self._name
+      self._footer.text = text=UI_SETTINGS.FOOTER + self._get_upd_time()
       self._view.set_values(self._model)
       return self._panel
 
@@ -87,7 +98,7 @@ class DepmonUIProvider:
                       fontname=UI_SETTINGS.FONT,
                       justify=Justify.CENTER)
 
-    self._footer = PanelText(text=UI_SETTINGS.FOOTER,
+    self._footer = PanelText(text=UI_SETTINGS.FOOTER + self._get_upd_time(),
                              fontname=UI_SETTINGS.FONT,
                              justify=Justify.RIGHT)
     self._panel = DataPanel(

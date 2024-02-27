@@ -25,9 +25,10 @@ URL_SUFFIX='departures?linesOfStops=false&remarks=false&pretty=false'
 
 class DepInfo:
   """ departure info for a station """
-  def __init__(self,name,info):
-    self.name = name
-    self.info = info
+  def __init__(self,name,info,update):
+    self.name   = name
+    self.info   = info
+    self.update = update
 
 class DepmonDataProvider:
 
@@ -89,7 +90,7 @@ class DepmonDataProvider:
   def update_data(self,data):
     """ callback for App: query data """
 
-    dm_data = {"departures": {}}
+    dm_data = {"departures": {}, "update": None}
 
     for station,via,product,line in app_config.stations:
       info = []
@@ -116,7 +117,8 @@ class DepmonDataProvider:
           continue
         info.append((plan,delay,name,direction))
 
+      updated = int(jdata["realtimeDataUpdatedAt"])
       resp.close()
-      dm_data["departures"][station] = DepInfo(stat_name,info)
+      dm_data["departures"][station] = DepInfo(stat_name,info,updated)
 
     data.update(dm_data)
