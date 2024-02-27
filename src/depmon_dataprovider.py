@@ -23,6 +23,12 @@ from settings import app_config
 URL_PREFIX='https://v6.db.transport.rest/stops'
 URL_SUFFIX='departures?linesOfStops=false&remarks=false&pretty=false'
 
+class DepInfo:
+  """ departure info for a station """
+  def __init__(self,name,info):
+    self.name = name
+    self.info = info
+
 class DepmonDataProvider:
 
   def __init__(self):
@@ -92,7 +98,7 @@ class DepmonDataProvider:
       jdata = json_stream.load(resp.iter_content(256))
 
       for dep in jdata["departures"]:
-        # filter for given line
+        stat_name = dep["stop"]["name"]
         plan  = ":".join(self._parse_time(dep["plannedWhen"]))
         delay = dep["delay"]
         if delay:
@@ -105,11 +111,12 @@ class DepmonDataProvider:
           delay = ""
         direction = dep["direction"]
         name      = dep["line"]["name"]
+        # filter for given line
         if line and name != line:
           continue
         info.append((plan,delay,name,direction))
 
       resp.close()
-      dm_data["departures"][station] = info
+      dm_data["departures"][station] = DepInfo(stat_name,info)
 
     data.update(dm_data)

@@ -34,6 +34,7 @@ class DepmonUIProvider:
     self._view  = None
     self._panel = None
     self._model = None
+    self._name  = None
 
   # --- update data   --------------------------------------------------------
 
@@ -42,7 +43,8 @@ class DepmonUIProvider:
 
     # update model (only first station for now)
     station = app_config.stations[0][0]
-    info = new_data["departures"][station]
+    info = new_data["departures"][station].info
+    self._name = new_data["departures"][station].name
     self._model = []
     for index,record in enumerate(info):
       if index == UI_SETTINGS.ROWS:
@@ -60,6 +62,7 @@ class DepmonUIProvider:
     """ create content """
 
     if self._panel:
+      self._title.text = self._name
       self._view.set_values(self._model)
       return self._panel
 
@@ -80,7 +83,7 @@ class DepmonUIProvider:
     )
 
     # create DataPanel
-    title = PanelText(text=UI_SETTINGS.TITLE,
+    self._title = PanelText(text=self._name,
                       fontname=UI_SETTINGS.FONT,
                       justify=Justify.CENTER)
 
@@ -93,7 +96,7 @@ class DepmonUIProvider:
       width=display.width-2*offset,
       height=display.height-2*offset,
       view=self._view,
-      title=title,
+      title=self._title,
       footer=self._footer,
       border=border,
       padding=UI_SETTINGS.PADDING,
