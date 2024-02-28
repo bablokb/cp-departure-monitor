@@ -49,17 +49,18 @@ class WifiHelper:
     retries = secrets.retry
 
     # check for static client hostname/address
-    if hasattr(self._secrets,'hostname'):
+    if hasattr(secrets,'hostname'):
       import ipaddress
-      addr  = ipaddress.ip_address(self._secrets.address)
-      mask  = ipaddress.ip_address(self._secrets.netmask)
-      gatew = ipaddress.ip_address(self._secrets.gateway)
-      dns   = ipaddress.ip_address(self._secrets.dns)
-      wifi.radio.hostname = self._secrets.hostname
+      addr  = ipaddress.ip_address(secrets.address)
+      mask  = ipaddress.ip_address(secrets.netmask)
+      gatew = ipaddress.ip_address(secrets.gateway)
+      dns   = ipaddress.ip_address(secrets.dns)
+      wifi.radio.hostname = secrets.hostname
       wifi.radio.set_ipv4_address(ipv4 = addr,
                                   netmask = mask,
                                   gateway = gatew,
-                                  ipv4_dns = dns)    while True:
+                                  ipv4_dns = dns)
+    while True:
       try:
         wifi.radio.connect(secrets.ssid,
                           secrets.password,
@@ -96,9 +97,9 @@ class WifiHelper:
 
   # --- execute get-request and return response   ---------------------------
 
-  def get(self,url):
+  def get(self,url,**kw):
     """ process get-request """
 
     if not self._wifi:
       self.connect()
-    return self._requests.get(url)
+    return self._requests.get(url,**kw)
