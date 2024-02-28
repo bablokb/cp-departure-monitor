@@ -17,6 +17,14 @@ import datetime
 from pyhafas import HafasClient
 from pyhafas.profile import DBProfile, VSNProfile
 
+def get_delay(departure):
+  """ return delay """
+  delay = getattr(departure,'delay',0)
+  if isinstance(delay,datetime.timedelta):
+    return round(delay.seconds/60)
+  elif delay is None:
+    return 0
+
 if __name__ == "__main__":
   if len(sys.argv) == 1:
     print(f"usage: {sys.argv[0]} station-id [[product] [direction]] ")
@@ -60,11 +68,27 @@ if __name__ == "__main__":
     max_trips=10
     )
 
+  # get column-width for delay and name
+  wmax_delay = 0
+  wmax_name  = 0
+  for d in deps:
+    wmax_delay = max(wmax_delay,len(str(get_delay(d))))
+    wmax_name  = max(wmax_name,len(d.name))
+
+  # create template for printing
+  template  = f"{{h:02}}:{{m:02}}{{s}}{{d:>{wmax_delay}.{wmax_delay}}}"
+  template += f" {{n:<{wmax_name}.{wmax_name}}} {{dir}}"
   for d in deps:
     dt = d.dateTime
-    delay = getattr(d,'delay',0)
-    if isinstance(delay,datetime.timedelta):
-      delay = round(delay.seconds/60)
-    elif delay is None:
-      delay = 0
-    print(f"{dt.hour:02}:{dt.minute:02} (+{delay:2}): {d.name} {d.direction}")
+    delay = get_delay(d)
+    if delay > 0:
+      sign = '+'
+      delay = str(delay)
+    elif delay < 0:
+      sign = '-'
+      delay = str(-delay)
+    else:
+      sign = ' '
+      delay = ' '
+    print(template.format(h=dt.hour,m=dt.minute,s=sign,
+                          d=delay,n=d.name,dir=d.direction))
