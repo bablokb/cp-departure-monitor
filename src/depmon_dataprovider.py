@@ -10,11 +10,14 @@
 #
 # -------------------------------------------------------------------------
 
+import gc
 import time
 try:
-  import adafruit_json_stream as json_stream
-except:
+  # Blinka (CPython)
   import json_stream
+except:
+  # CircuitPython
+  import adafruit_json_stream as json_stream
 
 from settings import app_config
 
@@ -23,12 +26,24 @@ from settings import app_config
 URL_PREFIX='https://v6.db.transport.rest/stops'
 URL_SUFFIX='departures?linesOfStops=false&remarks=false&pretty=false'
 
+# --- helper classes (value-holders)   ---------------------------------------
+
 class DepInfo:
+  """ Value-holder for departure information """
+  def __init__(self,plan,delay,line,dir):
+    self.plan  = plan
+    self.delay = delay
+    self.line  = line
+    self.dir   = dir
+
+class StatInfo:
   """ departure info for a station """
   def __init__(self,name,info,update):
     self.name   = name
     self.info   = info
     self.update = update
+
+# --- main data-provider class   ---------------------------------------------
 
 class DepmonDataProvider:
 
@@ -40,6 +55,15 @@ class DepmonDataProvider:
   def set_wifi(self,wifi):
     """ set wifi-object """
     self._wifi   = wifi
+
+  # --- trace memory   -------------------------------------------------------
+
+  def _mem_free(self,msg):
+    """ print free memory (not available with Blinka) """
+    try:
+      print(f"{msg}: {gc.mem_free()}")
+    except:
+      pass
 
   # --- parse iso-time   -----------------------------------------------------
 
@@ -95,6 +119,7 @@ class DepmonDataProvider:
     for station,via,product,line in app_config.stations:
       info = []
       url   = self._create_url(station,via,product)
+      self._mem_free("free memory before wifi.get()")
       resp  = self._wifi.get(url)
       jdata = json_stream.load(resp.iter_content(256))
 
@@ -104,21 +129,21 @@ class DepmonDataProvider:
         delay = dep["delay"]
         if delay:
           delay = int(int(delay)/60)
-          if delay > 0:
-            delay = f"+{delay}"
-          else:
-            delay = str(delay)
         else:
-          delay = ""
+          delay = 0
         direction = dep["direction"]
         name      = dep["line"]["name"]
         # filter for given line
         if line and name != line:
           continue
-        info.append((plan,delay,name,direction))
+        info.append(DepInfo(plan,delay,name,direction))
 
       updated = int(jdata["realtimeDataUpdatedAt"])
+      self._mem_free("free memory after parsing response")
       resp.close()
-      dm_data["departures"][station] = DepInfo(stat_name,info,updated)
+      resp = None
+      gc.collect()
+      self._mem_free("free memory after closing response")
+      dm_data["departures"][station] = StatInfo(stat_name,info,updated)
 
     data.update(dm_data)
