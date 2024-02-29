@@ -52,7 +52,7 @@ class DepmonUIProvider:
     """ pretty print update time """
 
     ts = time.localtime(self._update)
-    return f"{UI_SETTINGS.FOOTER}: {ts.tm_hour}:{ts.tm_min}:{ts.tm_sec}"
+    return f"{UI_SETTINGS.FOOTER}: {ts.tm_hour:02}:{ts.tm_min:02}:{ts.tm_sec:02}"
 
   # --- query departure-text   -----------------------------------------------
 
