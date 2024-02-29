@@ -10,6 +10,7 @@
 
 # --- imports   -----------------------------------------------------------
 
+import gc
 import builtins
 import time
 import board
@@ -149,5 +150,18 @@ class Application:
         # cannot do anything here
         traceback.print_exception(ex2)
     finally:
+      start = time.monotonic()
       content = self._uiprovider.create_content(self.display)
+      duration = time.monotonic()-start
+      print(f"create_content (uiprovider): {duration:f}s")
       self.update_display(content)
+      try:
+        print(f"free memory before collect: {gc.mem_free()}")
+      except:
+        pass
+      content = None
+      gc.collect()
+      try:
+        print(f"free memory after  collect: {gc.mem_free()}")
+      except:
+        pass
