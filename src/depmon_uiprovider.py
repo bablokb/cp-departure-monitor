@@ -13,9 +13,10 @@
 import time
 import traceback
 
-from dataviews.Base import Justify
-from dataviews.DataView  import DataView
-from dataviews.DataPanel import DataPanel, PanelText
+import displayio
+from adafruit_bitmap_font import bitmap_font
+from adafruit_display_text import label as label
+from vectorio import Rectangle
 
 from settings import app_config
 from ui_settings import UI_SETTINGS
@@ -30,10 +31,7 @@ class DepmonUIProvider:
     """ constructor: create ressources """
 
     # grid: time,delay,line,direction
-    self._dim    = (UI_SETTINGS.ROWS,4)
-    self._view   = None
-    self._panel  = None
-    self._model  = None
+    self._info   = None
     self._name   = None
     self._update = None
     
@@ -44,80 +42,91 @@ class DepmonUIProvider:
 
     # update model (only first station for now)
     station = app_config.stations[0][0]
-    info         = new_data["departures"][station].info
+    self._info   = new_data["departures"][station].info
     self._name   = new_data["departures"][station].name
     self._update = new_data["departures"][station].update
-    self._model  = []
-    for index,record in enumerate(info):
-      if index == UI_SETTINGS.ROWS:
-        # use at most ROWS records until we support paging
-        break
-      for i in range(4):
-        self._model.append(record[i])
-    if len(info) < self._dim[0]:
-      for _ in range(4*(self._dim[0]-len(info))):
-        self._model.append("")
 
-  # --- pretty print update   ------------------------------------------------
+  # --- query footer text   --------------------------------------------------
 
-  def _get_upd_time(self):
+  def _get_footer_text(self):
     """ pretty print update time """
 
     ts = time.localtime(self._update)
-    return f"{ts.tm_hour}:{ts.tm_min}:{ts.tm_sec}"
+    return f"{UI_SETTINGS.FOOTER}: {ts.tm_hour}:{ts.tm_min}:{ts.tm_sec}"
+
+  # --- query departure-text   -----------------------------------------------
+
+  def _get_departure_text(self):
+    """ get departure text """
+
+    # get column-width for delay and line-name
+    wmax_delay = 0
+    wmax_line  = 0
+    for index,d in enumerate(self._info):
+      if index == UI_SETTINGS.ROWS:
+        break
+      wmax_delay = max(wmax_delay,len(str(d.delay)))
+      wmax_line  = max(wmax_line,len(d.line))
+
+    # create template
+    template  = f"{{t}}{{s}}{{d:>{wmax_delay}.{wmax_delay}}}"
+    template += f" {{n:<{wmax_line}.{wmax_line}}} {{dir}}"
+
+    # create text
+    txt_lines = []
+    for index,d in enumerate(self._info):
+      if index == UI_SETTINGS.ROWS:
+        break
+      if d.delay > 0:
+        sign = '+'
+        delay = str(d.delay)
+      elif d.delay < 0:
+        sign = '-'
+        delay = str(-d.delay)
+      else:
+        sign = ' '
+        delay = ' '
+      txt_lines.append(template.format(t=d.plan,s=sign,
+                                       d=delay,n=d.line,dir=d.dir))
+    return "\n".join(txt_lines)
 
   # --- create complete content   --------------------------------------------
 
   def create_content(self,display):
     """ create content """
 
-    if self._panel:
-      self._title.text = self._name
-      self._footer.text = text=UI_SETTINGS.FOOTER + self._get_upd_time()
-      self._view.set_values(self._model)
-      return self._panel
+    g = displayio.Group()
+    font = bitmap_font.load_font(UI_SETTINGS.FONT)
 
-    border  = 1
-    offset  = 1    # keep away from border-pixels
-    divider = 1
-    padding = UI_SETTINGS.PADDING
-    self._view = DataView(
-      dim=self._dim,
-      width=display.width-2*(border+padding+offset)-(self._dim[1]-1)*divider,
-      height=int(0.6*display.height),
-      justify=Justify.LEFT,
-      fontname=UI_SETTINGS.FONT,
-      border=border,
-      divider=divider,
-      color=UI_SETTINGS.FOREGROUND,
-      bg_color=UI_SETTINGS.BACKGROUND
-    )
+    g.append(Rectangle(pixel_shader=UI_SETTINGS.PALETTE,x=0,y=0,
+                       width=display.width,
+                       height=display.height,
+                       color_index=UI_SETTINGS.BG_COLOR))
 
-    # create DataPanel
-    self._title = PanelText(text=self._name,
-                      fontname=UI_SETTINGS.FONT,
-                      justify=Justify.CENTER)
+    # create title-label (top-center)
+    t_label = label.Label(font=font,color=UI_SETTINGS.FG_PALETTE,
+                          text=self._name,
+                          anchor_point=(0.5,0))
+    t_label.anchored_position = (display.width/2,UI_SETTINGS.MARGIN)
+    g.append(t_label)
 
-    self._footer = PanelText(text=UI_SETTINGS.FOOTER + self._get_upd_time(),
-                             fontname=UI_SETTINGS.FONT,
-                             justify=Justify.LEFT)
-    self._panel = DataPanel(
-      x = offset,
-      y = offset,
-      width=display.width-2*offset,
-      height=display.height-2*offset,
-      view=self._view,
-      title=self._title,
-      footer=self._footer,
-      border=border,
-      padding=UI_SETTINGS.PADDING,
-      justify=Justify.CENTER,
-      color=UI_SETTINGS.FOREGROUND,
-      bg_color=UI_SETTINGS.BACKGROUND
-    )
+    # create departure label (left-middle)
+    d_label = label.Label(font=font,color=UI_SETTINGS.FG_PALETTE,
+                          tab_replacement=(2," "),
+                          line_spacing=1,
+                          text=self._get_departure_text(),
+                          anchor_point=(0,0.5))
+    d_label.anchored_position = (UI_SETTINGS.MARGIN,display.height/2)
+    g.append(d_label)
 
-    self._view.set_values(self._model)
-    return self._panel
+    # create footer-label (left-bottom)
+    f_label = label.Label(font=font,color=UI_SETTINGS.FG_PALETTE,
+                          text=self._get_footer_text(),
+                          anchor_point=(0,1))
+    f_label.anchored_position = (UI_SETTINGS.MARGIN,
+                                 display.height-UI_SETTINGS.MARGIN)
+    g.append(f_label)
+    return g
 
   # --- handle exception   ---------------------------------------------------
 
