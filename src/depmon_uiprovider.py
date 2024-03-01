@@ -30,7 +30,7 @@ class DepmonUIProvider:
   def __init__(self):
     """ constructor: create ressources """
 
-    # grid: time,delay,line,direction
+    self._view   = None
     self._info   = None
     self._name   = None
     self._update = None
@@ -45,6 +45,10 @@ class DepmonUIProvider:
     self._info   = new_data["departures"][station].info
     self._name   = new_data["departures"][station].name
     self._update = new_data["departures"][station].update
+
+    self._header.text = self._name
+    self._footer.text = self._get_footer_text()
+    self._dep.text    = self._get_departure_text()
 
   # --- query footer text   --------------------------------------------------
 
@@ -95,38 +99,42 @@ class DepmonUIProvider:
   def create_content(self,display):
     """ create content """
 
-    g = displayio.Group()
+    if self._view:
+      return self._view
+
+    self._view = displayio.Group()
     font = bitmap_font.load_font(UI_SETTINGS.FONT)
 
-    g.append(Rectangle(pixel_shader=UI_SETTINGS.PALETTE,x=0,y=0,
+    self._view.append(Rectangle(pixel_shader=UI_SETTINGS.PALETTE,x=0,y=0,
                        width=display.width,
                        height=display.height,
                        color_index=UI_SETTINGS.BG_COLOR))
 
     # create title-label (top-center)
-    t_label = label.Label(font=font,color=UI_SETTINGS.FG_PALETTE,
-                          text=self._name,
+    self._header = label.Label(font=font,color=UI_SETTINGS.FG_PALETTE,
+                          text="PLACEHOLDER",
                           anchor_point=(0.5,0))
-    t_label.anchored_position = (display.width/2,UI_SETTINGS.MARGIN)
-    g.append(t_label)
+    self._header.anchored_position = (display.width/2,UI_SETTINGS.MARGIN)
+    self._view.append(self._header)
 
     # create departure label (left-middle)
-    d_label = label.Label(font=font,color=UI_SETTINGS.FG_PALETTE,
-                          tab_replacement=(2," "),
-                          line_spacing=1,
-                          text=self._get_departure_text(),
-                          anchor_point=(0,0.5))
-    d_label.anchored_position = (UI_SETTINGS.MARGIN,display.height/2)
-    g.append(d_label)
+    self._dep = label.Label(font=font,color=UI_SETTINGS.FG_PALETTE,
+                            tab_replacement=(2," "),
+                            line_spacing=1,
+                            text="\n".join(
+                              ["PLACEHOLDER" for _ in range(UI_SETTINGS.ROWS)]),
+                            anchor_point=(0,0.5))
+    self._dep.anchored_position = (UI_SETTINGS.MARGIN,display.height/2)
+    self._view.append(self._dep)
 
     # create footer-label (left-bottom)
-    f_label = label.Label(font=font,color=UI_SETTINGS.FG_PALETTE,
-                          text=self._get_footer_text(),
+    self._footer = label.Label(font=font,color=UI_SETTINGS.FG_PALETTE,
+                          text="PLACEHOLDER",
                           anchor_point=(0,1))
-    f_label.anchored_position = (UI_SETTINGS.MARGIN,
+    self._footer.anchored_position = (UI_SETTINGS.MARGIN,
                                  display.height-UI_SETTINGS.MARGIN)
-    g.append(f_label)
-    return g
+    self._view.append(self._footer)
+    return self._view
 
   # --- handle exception   ---------------------------------------------------
 

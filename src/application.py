@@ -141,6 +141,11 @@ class Application:
   def run(self):
     """ main application loop """
 
+    start = time.monotonic()
+    content = self._uiprovider.create_content(self.display)
+    duration = time.monotonic()-start
+    print(f"create_content (uiprovider): {duration:f}s")
+
     try:
       self.update_data()
     except Exception as ex:
@@ -150,10 +155,6 @@ class Application:
         # cannot do anything here
         traceback.print_exception(ex2)
     finally:
-      start = time.monotonic()
-      content = self._uiprovider.create_content(self.display)
-      duration = time.monotonic()-start
-      print(f"create_content (uiprovider): {duration:f}s")
       self.update_display(content)
       try:
         print(f"free memory before collect: {gc.mem_free()}")
