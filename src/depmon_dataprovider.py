@@ -142,6 +142,7 @@ class DepmonDataProvider:
       self._mem_free("free memory after parsing response")
       resp.close()
       resp = None
+      jdata = None
       gc.collect()
       self._mem_free("free memory after closing response")
       dm_data["departures"][station] = StatInfo(stat_name,info,updated)
