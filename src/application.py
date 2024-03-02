@@ -122,6 +122,12 @@ class Application:
         alarm.light_sleep_until_alarms(time_alarm)
       print("update finished!")
 
+      print(f"free memory before collect: {gc.mem_free()}")
+      self.display.root_group = None
+      content = None
+      gc.collect()
+      print(f"free memory after  collect: {gc.mem_free()}")
+
   # --- blink status-led   ---------------------------------------------------
 
   def blink(self,duration):
@@ -148,21 +154,6 @@ class Application:
 
     try:
       self.update_data()
-    except Exception as ex:
-      try:
-        self._uiprovider.handle_exception(ex)
-      except Exception as ex2:
-        # cannot do anything here
-        traceback.print_exception(ex2)
-    finally:
       self.update_display(content)
-      try:
-        print(f"free memory before collect: {gc.mem_free()}")
-      except:
-        pass
-      content = None
-      gc.collect()
-      try:
-        print(f"free memory after  collect: {gc.mem_free()}")
-      except:
-        pass
+    except Exception as ex:
+      raise
