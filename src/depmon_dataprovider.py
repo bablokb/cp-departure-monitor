@@ -71,10 +71,13 @@ class DepmonDataProvider:
     """ parse iso-timestamp """
 
     the_date, the_time = tm.split('T')
-    #year,month,mday    = the_date.split('-')
+    #year,month,mday   = the_date.split('-')
     hour,minute        = the_time.split(':')[0:2]
-    #iso_pretty         = tm.replace('T',' ')
-    return [hour,minute]
+
+    offset = the_time[-6:]
+    sign = 1 if offset[0] == '+' else -1
+    offset = sign*3600*int(offset[1:3])+sign*60*int(offset[4:])
+    return [hour,minute,offset]
 
   # --- create query-url   ---------------------------------------------------
 
@@ -125,7 +128,8 @@ class DepmonDataProvider:
 
       for dep in jdata["departures"]:
         stat_name = dep["stop"]["name"]
-        plan  = ":".join(self._parse_time(dep["plannedWhen"]))
+        hour,minute,offset = self._parse_time(dep["plannedWhen"])
+        plan  = ":".join([hour,minute])
         delay = dep["delay"]
         if delay:
           delay = int(int(delay)/60)
@@ -138,10 +142,13 @@ class DepmonDataProvider:
           continue
         info.append(DepInfo(plan,delay,name,direction))
 
-      updated = int(jdata["realtimeDataUpdatedAt"])
+      # get update-timepoint (robust code, might not exist)
+      updated = jdata["realtimeDataUpdatedAt"]
+      if updated:
+        updated = int(updated)+offset
       self._mem_free("free memory after parsing response")
-      resp.close()
-      resp = None
+      #resp.close()
+      #resp = None
       jdata = None
       gc.collect()
       self._mem_free("free memory after closing response")

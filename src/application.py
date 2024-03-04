@@ -122,9 +122,14 @@ class Application:
         alarm.light_sleep_until_alarms(time_alarm)
       print("update finished!")
 
+  # --- free memory from UI   ------------------------------------------------
+
+  def free_ui_memory(self):
+    """ free memory used by UI and display """
+
+    if not self.is_pygame:
       print(f"free memory before clear of UI: {gc.mem_free()}")
       self.display.root_group = None
-      content = None
       self._uiprovider.clear_content()
       #gc.collect()
       print(f"free memory after clear of UI: {gc.mem_free()}")
@@ -143,12 +148,28 @@ class Application:
     """ turn off device """
     self._shutdown()
 
+  # --- sleep for given duration   -------------------------------------------
+
+  def sleep(self,duration):
+    """ sleep for given duration """
+
+    if self.is_pygame:
+      import sys
+      start = time.monotonic()
+      while time.monotonic()-start < duration:
+        if self.display.check_quit():
+          sys.exit(0)
+        time.sleep(0.1)
+    else:
+      time.sleep(duration)
+
   # --- main application code   ----------------------------------------------
 
   def run(self):
-    """ main application loop """
+    """ main application logic """
 
     try:
+      self.free_ui_memory()
       self.update_data()
       start = time.monotonic()
       content = self._uiprovider.create_content(self.display)

@@ -52,7 +52,8 @@ class DepmonUIProvider:
   def _get_footer_text(self):
     """ pretty print update time """
 
-    ts = time.localtime(self._update)
+    ltime = getattr(time,'gmtime',time.localtime) # use time.gmtime with CPython
+    ts = ltime(self._update)
     return f"{UI_SETTINGS.FOOTER}: {ts.tm_hour:02}:{ts.tm_min:02}:{ts.tm_sec:02}"
 
   # --- query departure-text   -----------------------------------------------

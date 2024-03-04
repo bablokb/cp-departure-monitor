@@ -28,11 +28,4 @@ print(f"startup: {time.monotonic()-start:f}s")
 
 while True:
   app.run()
-  if app.is_pygame:
-    # pygame: don't loop, just wait for CTRL-C
-    app.shutdown()
-  else:
-    # call shutdown if battery-management is available
-    # app.set_wakeup(...)
-    # app.shutdown()
-    time.sleep(60)
+  app.sleep(60)
