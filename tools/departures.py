@@ -81,7 +81,10 @@ if __name__ == "__main__":
   for d in deps:
     dt = d.dateTime
     delay = get_delay(d)
-    if delay > 0:
+    if d.cancelled:
+      sign = ' '
+      delay = 'X'*wmax_delay
+    elif delay > 0:
       sign = '+'
       delay = str(delay)
     elif delay < 0:
