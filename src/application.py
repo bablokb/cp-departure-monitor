@@ -145,18 +145,11 @@ class Application:
   # --- main application code   ----------------------------------------------
 
   def run(self):
-    """ main application logic """
+    """ main application logic usually called in a loop """
 
-    while True:
-      cycle_start = time.monotonic()
-      try:
-        self.update_data()    # update data before UI is created
-        self.create_ui()      # ui-provider should buffer this for performance
-        self.update_display()
-      except Exception as ex:
-        raise
-
-      # look for key-events until update-time expires
-      rest = max(0,app_config.upd_time-(time.monotonic()-cycle_start))
-      print(f"next update in {int(rest)}s")
-      self.process_keys(rest)
+    try:
+      self.update_data()    # update data before UI is created
+      self.create_ui()      # ui-provider should buffer this for performance
+      self.update_display()
+    except Exception as ex:
+      raise
