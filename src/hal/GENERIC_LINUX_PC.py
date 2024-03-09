@@ -25,9 +25,17 @@ class HalPygame(HalBase):
 
   def get_display(self):
     """ return display """
+    if self._display:
+      return self._display
+
     self._display = PyGameDisplay(width=296,height=128,
                                   native_frames_per_second=1)
     return self._display
+
+  def show(self,content):
+    """ show and refresh the display """
+    self._display.show(content)
+    self._display.refresh()
 
   def bat_level(self):
     """ return battery level """
@@ -47,6 +55,17 @@ class HalPygame(HalBase):
     while True:
       if self._display.check_quit():
         sys.exit(0)
-      time.sleep(0.25)
+      time.sleep(0.1)
+
+  def sleep(self,duration):
+    if not self._display:
+      super.sleep(duration)
+      return
+
+    start = time.monotonic()
+    while time.monotonic()-start < duration:
+      if self._display.check_quit():
+        sys.exit(0)
+      time.sleep(0.1)
 
 impl = HalPygame()

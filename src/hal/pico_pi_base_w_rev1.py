@@ -33,6 +33,7 @@ class HalPicoPiBase(HalBase):
 
   def __init__(self):
     """ constructor """
+    self._display        = None
     self._done           = DigitalInOut(DONE_PIN)
     self._done.direction = Direction.OUTPUT
     self._done.value     = 0
@@ -59,6 +60,9 @@ class HalPicoPiBase(HalBase):
 
   def get_display(self):
     """ return display """
+    if self._display:
+      return self._dispay
+
     displayio.release_displays()
     width,height,color = self._get_display_info()
     spi = busio.SPI(SCK_PIN,MOSI=MOSI_PIN,MISO=MISO_PIN)
@@ -66,21 +70,19 @@ class HalPicoPiBase(HalBase):
       spi, command=DC_PIN, chip_select=CS_PIN_D, reset=RST_PIN, baudrate=1000000
     )
 
-    if color == 'acep7':
-      # assume Inky-Impression
+    if color == 'acep7': # assume Inky-Impression
       import adafruit_spd1656
-      display = adafruit_spd1656.SPD1656(display_bus,busy_pin=BUSY_PIN,
+      self._display = adafruit_spd1656.SPD1656(display_bus,busy_pin=BUSY_PIN,
                                          width=width,height=height,
                                          refresh_time=2,
                                          seconds_per_frame=40)
-      display.auto_refresh = False
-    else:
-      # assume Inky-wHat
+    else: # assume Inky-wHat
       import what
-      display = what.Inky_wHat(display_bus,busy_pin=BUSY_PIN,
+      self._display = what.Inky_wHat(display_bus,busy_pin=BUSY_PIN,
                                color=color,border_color=color,
                                black_bits_inverted=True)
-    return display
+    self._display.auto_refresh = False
+    return self._display
 
   def get_rtc_ext(self):
     """ return external rtc, if available """

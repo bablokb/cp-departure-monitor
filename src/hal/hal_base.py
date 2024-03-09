@@ -11,12 +11,17 @@
 # ----------------------------------------------------------------------------
 
 import board
+import time
+try:
+  import alarm
+except:
+  pass
 from digitalio import DigitalInOut, Direction
 
 class HalBase:
   def __init__(self):
     """ constructor """
-    pass
+    self._display = None
 
   def status_led(self,value):
     """ set status LED """
@@ -43,7 +48,27 @@ class HalBase:
 
   def get_display(self):
     """ return display """
-    return board.DISPLAY
+    if not self._display:
+      self._display = board.DISPLAY
+    return self._display
+
+  def show(self,content):
+    """ show and refresh the display """
+
+    self._display.root_group = content
+
+    if self._display.time_to_refresh > 0.0:
+      # ttr will be >0 only if system is on running on USB-power
+      time.sleep(self._display.time_to_refresh)
+    self.display.refresh()
+
+    duration = time.monotonic()-start
+    update_time = self.display.time_to_refresh - duration
+    if update_time > 0.0:
+      # might running on battery-power: save some power using light-sleep
+      time_alarm = alarm.time.TimeAlarm(
+        monotonic_time=time.monotonic()+update_time)
+      alarm.light_sleep_until_alarms(time_alarm)
 
   def get_rtc_ext(self):
     """ return external rtc, if available """
@@ -51,3 +76,6 @@ class HalBase:
 
   def shutdown(self):
     pass
+
+  def sleep(self,duration):
+    time.sleep(duration)
