@@ -16,10 +16,7 @@ import time
 import board
 import traceback
 
-try:
-  import alarm
-except:
-  pass
+from settings import app_config
 
 # Import HAL (hardware-abstraction-layer).
 # This expects an object "impl" within the implementing hal_file.
@@ -54,6 +51,7 @@ class Application:
 
     self._dataprovider = dataprovider
     self._uiprovider   = uiprovider
+    self.data = {}
 
   # --- setup hardware   -----------------------------------------------------
 
@@ -66,6 +64,8 @@ class Application:
     self._led       = hal.impl.status_led
     self.wifi       = hal.impl.wifi()
     self._shutdown  = hal.impl.shutdown
+    self.sleep      = hal.impl.sleep
+    self._show      = hal.impl.show
     if with_rtc:
       self._rtc_ext = hal.impl.get_rtc_ext()
       if self._rtc_ext:
@@ -76,7 +76,6 @@ class Application:
   def update_data(self):
     """ update data """
 
-    self.data = {}
     self.data["bat_level"] = self.bat_level()
 
     start = time.monotonic()
@@ -84,43 +83,32 @@ class Application:
     duration = time.monotonic()-start
     print(f"update_data (dataprovider): {duration:f}s")
 
+  # --- create ui   ----------------------------------------------------------
+
+  def create_ui(self):
+    """ create UI. UI-provider might buffer UI for performance """
+
     start = time.monotonic()
-    self._uiprovider.update_data(self.data)
+    self._ui = self._uiprovider.create_ui(self.display)
     duration = time.monotonic()-start
-    print(f"update_data (uiprovider): {duration:f}s")
+    print(f"create_content (uiprovider): {duration:f}s")
 
   # --- update display   -----------------------------------------------------
 
-  def update_display(self,content):
+  def update_display(self):
     """ update display """
 
+    # update UI with current model
     start = time.monotonic()
-    if self.is_pygame:
-      self.display.show(content)
-    else:
-      self.display.root_group = content
-    print(f"update_display (show): {time.monotonic()-start:f}s")
-    start = time.monotonic()
-
-    if not self.is_pygame and self.display.time_to_refresh > 0.0:
-      # ttr will be >0 only if system is on USB-power (running...)
-      print(f"time-to-refresh: {self.display.time_to_refresh}")
-      time_alarm = alarm.time.TimeAlarm(
-        monotonic_time=time.monotonic()+self.display.time_to_refresh)
-      alarm.light_sleep_until_alarms(time_alarm)
-
-    self.display.refresh()
+    self._uiprovider.update_ui(self.data)
     duration = time.monotonic()-start
-    print(f"update_display (refreshed): {duration:f}s")
+    print(f"update_ui (uiprovider): {duration:f}s")
 
-    if not self.is_pygame:
-      update_time = self.display.time_to_refresh - duration
-      if update_time > 0.0:
-        print(f"update-time: {update_time} (sleeping...)")
-        time_alarm = alarm.time.TimeAlarm(
-          monotonic_time=time.monotonic()+update_time)
-        alarm.light_sleep_until_alarms(time_alarm)
-      print("update finished!")
+    # and show content on screen
+    start = time.monotonic()
+    self._show(self._ui)
+    duration = time.monotonic()-start
+    print(f"show (HAL): {duration:f}s")
 
   # --- free memory from UI   ------------------------------------------------
 
@@ -130,7 +118,7 @@ class Application:
     if not self.is_pygame:
       print(f"free memory before clear of UI: {gc.mem_free()}")
       self.display.root_group = None
-      self._uiprovider.clear_content()
+      self._uiprovider.clear_ui()
       #gc.collect()
       print(f"free memory after clear of UI: {gc.mem_free()}")
 
@@ -148,33 +136,27 @@ class Application:
     """ turn off device """
     self._shutdown()
 
-  # --- sleep for given duration   -------------------------------------------
+  # --- process key events   -------------------------------------------------
 
-  def sleep(self,duration):
-    """ sleep for given duration """
-
-    if self.is_pygame:
-      import sys
-      start = time.monotonic()
-      while time.monotonic()-start < duration:
-        if self.display.check_quit():
-          sys.exit(0)
-        time.sleep(0.1)
-    else:
-      time.sleep(duration)
+  def process_keys(self,duration):
+    """ process keys. Must be implemented by subclasses """
+    self.sleep(duration)
 
   # --- main application code   ----------------------------------------------
 
   def run(self):
     """ main application logic """
 
-    try:
-      self.free_ui_memory()
-      self.update_data()
-      start = time.monotonic()
-      content = self._uiprovider.create_content(self.display)
-      duration = time.monotonic()-start
-      print(f"create_content (uiprovider): {duration:f}s")
-      self.update_display(content)
-    except Exception as ex:
-      raise
+    while True:
+      cycle_start = time.monotonic()
+      try:
+        self.update_data()    # update data before UI is created
+        self.create_ui()      # ui-provider should buffer this for performance
+        self.update_display()
+      except Exception as ex:
+        raise
+
+      # look for key-events until update-time expires
+      rest = max(0,app_config.upd_time-(time.monotonic()-cycle_start))
+      print(f"next update in {int(rest)}s")
+      self.process_keys(rest)

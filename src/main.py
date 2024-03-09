@@ -28,4 +28,3 @@ print(f"startup: {time.monotonic()-start:f}s")
 
 while True:
   app.run()
-  app.sleep(60)

@@ -38,7 +38,7 @@ class DepmonUIProvider:
     
   # --- update data   --------------------------------------------------------
 
-  def update_data(self,new_data):
+  def update_ui(self,new_data):
     """ update data: callback for Application """
 
     # update model (only first station for now)
@@ -46,6 +46,10 @@ class DepmonUIProvider:
     self._info   = new_data["departures"][station].info
     self._name   = new_data["departures"][station].name
     self._update = new_data["departures"][station].update
+
+    self._header.text = self._name
+    self._footer.text = self._get_footer_text()
+    self._dep.text    = self._get_departure_text()
 
   # --- query footer text   --------------------------------------------------
 
@@ -92,10 +96,10 @@ class DepmonUIProvider:
                                        d=delay,n=d.line,dir=d.dir))
     return "\n".join(txt_lines)
 
-  # --- create complete content   --------------------------------------------
+  # --- create complete UI   -------------------------------------------------
 
-  def create_content(self,display):
-    """ create content """
+  def create_ui(self,display):
+    """ create ui """
 
     self._view = displayio.Group()
     font = bitmap_font.load_font(UI_SETTINGS.FONT)
@@ -106,40 +110,36 @@ class DepmonUIProvider:
                        color_index=UI_SETTINGS.BG_COLOR))
 
     # create title-label (top-center)
-    header = label.Label(font=font,color=UI_SETTINGS.FG_PALETTE,
+    self._header = label.Label(font=font,color=UI_SETTINGS.FG_PALETTE,
                           text="PLACEHOLDER",
                           anchor_point=(0.5,0))
-    header.anchored_position = (display.width/2,UI_SETTINGS.MARGIN)
-    self._view.append(header)
+    self._header.anchored_position = (display.width/2,UI_SETTINGS.MARGIN)
+    self._view.append(self._header)
 
     # create departure label (left-middle)
-    dep = label.Label(font=font,color=UI_SETTINGS.FG_PALETTE,
+    self._dep = label.Label(font=font,color=UI_SETTINGS.FG_PALETTE,
                             tab_replacement=(2," "),
                             line_spacing=1,
                             text="\n".join(
                               ["PLACEHOLDER" for _ in range(UI_SETTINGS.ROWS)]),
                             anchor_point=(0,0.5))
-    dep.anchored_position = (UI_SETTINGS.MARGIN,display.height/2)
-    self._view.append(dep)
+    self._dep.anchored_position = (UI_SETTINGS.MARGIN,display.height/2)
+    self._view.append(self._dep)
 
     # create footer-label (left-bottom)
-    footer = label.Label(font=font,color=UI_SETTINGS.FG_PALETTE,
+    self._footer = label.Label(font=font,color=UI_SETTINGS.FG_PALETTE,
                           text="PLACEHOLDER",
                           anchor_point=(0,1))
-    footer.anchored_position = (UI_SETTINGS.MARGIN,
+    self._footer.anchored_position = (UI_SETTINGS.MARGIN,
                                  display.height-UI_SETTINGS.MARGIN)
-    self._view.append(footer)
-
-    header.text = self._name
-    footer.text = self._get_footer_text()
-    dep.text    = self._get_departure_text()
+    self._view.append(self._footer)
 
     return self._view
 
-  # --- clear content and free memory   --------------------------------------
+  # --- clear UI and free memory   --------------------------------------
 
-  def clear_content(self):
-    """ clear content """
+  def clear_ui(self):
+    """ clear UI """
 
     if self._view:
       for _ in range(len(self._view)):
