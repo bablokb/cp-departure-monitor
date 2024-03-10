@@ -41,12 +41,15 @@ class DepmonUIProvider:
   def update_ui(self,new_data):
     """ update data: callback for Application """
 
-    # update model (only first station for now)
-    station = app_config.stations[0][0]
+    # update model
+    c_index = new_data["station_index"]
+    station = app_config.stations[c_index][0]
+    self._rindex = new_data["row"]
     self._info   = new_data["departures"][station].info
     self._name   = new_data["departures"][station].name
     self._update = new_data["departures"][station].update
 
+    # update UI
     self._header.text = self._name
     self._footer.text = self._get_footer_text()
     self._dep.text    = self._get_departure_text()
@@ -69,7 +72,9 @@ class DepmonUIProvider:
     wmax_delay = 0
     wmax_line  = 0
     for index,d in enumerate(self._info):
-      if index == UI_SETTINGS.ROWS:
+      if index < self._rindex:
+        continue
+      elif index == self._rindex + UI_SETTINGS.ROWS:
         break
       wmax_delay = max(wmax_delay,len(str(d.delay)))
       wmax_line  = max(wmax_line,len(d.line))
@@ -81,7 +86,9 @@ class DepmonUIProvider:
     # create text
     txt_lines = []
     for index,d in enumerate(self._info):
-      if index == UI_SETTINGS.ROWS:
+      if index < self._rindex:
+        continue
+      elif index == self._rindex + UI_SETTINGS.ROWS:
         break
       if d.delay > 0:
         sign = '+'
