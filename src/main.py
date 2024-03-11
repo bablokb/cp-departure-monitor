@@ -13,8 +13,12 @@
 
 # --- imports   -----------------------------------------------------------
 
+import sys
 import time
-start = time.monotonic()
+try:
+  import pygame
+except:
+  import keypad
 
 from application import Application
 from depmon_uiprovider   import DepmonUIProvider   as UIProvider
@@ -22,57 +26,107 @@ from depmon_dataprovider import DepmonDataProvider as DataProvider
 from settings import app_config
 from ui_settings import UI_SETTINGS
 
-ui_provider   = UIProvider()
-data_provider = DataProvider() 
-app = Application(data_provider,ui_provider,with_rtc=False)
-app.blink(0.5)
-print(f"startup: {time.monotonic()-start:f}s")
+class DepMon(Application):
+  """ Departure-Monitor main-application class """
 
-# fill initial values for model
-app.data["station_index"] = 0
-app.data["row"]           = 0
+  KEY_UP, KEY_DOWN, KEY_LEFT, KEY_RIGHT = list(range(4))
+  try:
+    PYGAME_KEYMAP = {
+      pygame.K_UP:    KEY_UP,
+      pygame.K_DOWN:  KEY_DOWN,
+      pygame.K_LEFT:  KEY_LEFT,
+      pygame.K_RIGHT: KEY_RIGHT
+      }
+  except:
+    pass
 
-if app.is_pygame:
-  import sys
-  import pygame
+  # --- constructor   --------------------------------------------------------
 
-  # --- define event handler for keys   --------------------------------------
+  def __init__(self):
+    """ constructor """
+    ui_provider   = UIProvider()
+    data_provider = DataProvider()
+    super().__init__(data_provider,ui_provider,with_rtc=False)
+    self.blink(0.5)
 
-  def on_event(ev):
-    if ev.key == pygame.K_ESCAPE:
-      sys.exit(0)
+    # fill initial values for model
+    self.data["station_index"] = 0
+    self.data["row"]           = 0
 
-    c_index = app.data["station_index"]
-    n_departures = len(app.data["departures"]
+  # --- process keys by number   ----------------------------------------------
+
+  def process_keys(self,key_nr):
+    """ process key by nr: up, down, left, right """
+
+    c_index = self.data["station_index"]
+    n_departures = len(self.data["departures"]
                        [app_config.stations[c_index][0]].info)
 
-    if ev.key == pygame.K_RIGHT:
+    if  key_nr == DepMon.KEY_RIGHT:
       if c_index < len(app_config.stations)-1:
-        app.data["station_index"] += 1
-    elif ev.key == pygame.K_LEFT:
+        self.data["station_index"] += 1
+      self.data["row"] = 0
+    elif key_nr == DepMon.KEY_LEFT:
       if c_index > 0:
-        app.data["station_index"] -= 1
-    elif ev.key == pygame.K_DOWN:
-      app.data["row"] += UI_SETTINGS.ROWS
-      if app.data["row"] > n_departures-UI_SETTINGS.ROWS:
-        app.data["row"] = n_departures-UI_SETTINGS.ROWS
-    elif ev.key == pygame.K_UP:
-      app.data["row"] -= UI_SETTINGS.ROWS
-      if app.data["row"] < 0:
-        app.data["row"] = 0
-    ui_provider.update_ui(app.data)
+        self.data["station_index"] -= 1
+      self.data["row"] = 0
+    elif key_nr == DepMon.KEY_DOWN:
+      self.data["row"] += UI_SETTINGS.ROWS
+      if self.data["row"] > n_departures-UI_SETTINGS.ROWS:
+        self.data["row"] = n_departures-UI_SETTINGS.ROWS
+    elif key_nr == DepMon.KEY_UP:
+      self.data["row"] -= UI_SETTINGS.ROWS
+      if self.data["row"] < 0:
+        self.data["row"] = 0
+    else:
+      return
+    self.update_display()
 
-  # --- main application logic   ---------------------------------------------
+  # --- key-handler for PyGame-Display environment   -------------------------
 
-  app.run()
-  app.display.event_loop(
-    interval=app_config.upd_time,
-    on_time=app.run, on_event=on_event, events=[pygame.KEYDOWN])
+  def on_event(self,ev):
+    if ev.key == pygame.K_ESCAPE:
+      sys.exit(0)
+    else:
+      self.process_keys(DepMon.PYGAME_KEYMAP[ev.key])
+
+  # --- main loop for PyGame-Display environment   ---------------------------
+
+  def run_pygame(self):
+    """ event-loop for PyGame-Display environment """
+
+    self.run()
+    self.display.event_loop(
+      interval=app_config.upd_time,
+      on_time=self.run, on_event=self.on_event, events=[pygame.KEYDOWN])
+
+  # --- main loop for normal CircuitPython environment   ---------------------
+
+  def run_cp(self):
+    """ main-loop for normal environment """
+
+    if self.keys:
+      print(f"{self.keys=}")
+      keys = keypad.Keys(self.keys[1],
+                         value_when_pressed=self.keys[0],pull=True,
+                         interval=0.1,max_events=4)
+    while True:
+      start = time.monotonic()
+      app.run()
+      if self.keys:
+        while time.monotonic()-start < app_config.upd_time:
+          event = keys.events.get()
+          if event:
+            print(f"{event=}")
+          if event and event.pressed:
+            self.process_keys(event.key_number)
+      else:
+        self.sleep(app_config.upd_time - (time.monotonic()-start))
+
+# --- main application code   -------------------------------------------------
+
+app = DepMon()
+if app.is_pygame:
+  app.run_pygame()
 else:
-  while True:
-    app.run()
-
-  # look for key-events until update-time expires
-  #rest = max(0,app_config.upd_time-(time.monotonic()-cycle_start))
-  #print(f"next update in {int(rest)}s")
-  #self.process_keys(rest)
+  app.run_cp()
