@@ -62,6 +62,7 @@ class Application:
     self.is_pygame  = hasattr(self.display,"check_quit")
     self.bat_level  = hal.impl.bat_level
     self._led       = hal.impl.status_led
+    self._keys      = hal.impl.get_keys()
     self.wifi       = hal.impl.wifi()
     self._shutdown  = hal.impl.shutdown
     self.sleep      = hal.impl.sleep
@@ -135,12 +136,6 @@ class Application:
   def shutdown(self):
     """ turn off device """
     self._shutdown()
-
-  # --- process key events   -------------------------------------------------
-
-  def process_keys(self,duration):
-    """ process keys. Must be implemented by subclasses """
-    self.sleep(duration)
 
   # --- main application code   ----------------------------------------------
 

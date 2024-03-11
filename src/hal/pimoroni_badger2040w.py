@@ -33,4 +33,9 @@ class HalBadger2040W(HalBase):
     """ turn off power by pulling enable pin low """
     board.ENABLE_DIO.value = 0
 
+  def get_keys(self):
+    """ return list of pin-numbers for up, down, left, right """
+    # format is (active-state,[key1,...])
+    return (False,[board.SW_UP,board.SW_DOWN,board.SW_A,board.SW_C])
+
 impl = HalBadger2040W()

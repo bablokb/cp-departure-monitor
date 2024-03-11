@@ -24,4 +24,9 @@ class HalMagtag(HalBase):
     """ return battery level """
     return (self._bat_mon.value / 65535.0) * 3.3 * 2
 
+  def get_keys(self):
+    """ return list of pin-numbers for up, down, left, right """
+    # format is (active-state,[key1,...])
+    return (False,[board.D14,board.D12,board.D15,board.D11])
+
 impl = HalMagtag()

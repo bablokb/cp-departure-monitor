@@ -49,7 +49,7 @@ class HalBase:
   def get_display(self):
     """ return display """
     if not self._display:
-      self._display = board.DISPLAY
+      self._display = getattr(board,'DISPLAY',None)
     return self._display
 
   def show(self,content):
@@ -75,7 +75,14 @@ class HalBase:
     return None
 
   def shutdown(self):
+    """ shutdown system """
     pass
 
   def sleep(self,duration):
+    """ sleep for the given duration in seconds """
     time.sleep(duration)
+
+  def get_keys(self):
+    """ return list of pin-numbers for up, down, left, right """
+    # format is (active-state,[key1,...])
+    return None
