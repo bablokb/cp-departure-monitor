@@ -60,10 +60,12 @@ class HalBase:
     if self._display.time_to_refresh > 0.0:
       # ttr will be >0 only if system is on running on USB-power
       time.sleep(self._display.time_to_refresh)
-    self.display.refresh()
 
+    start = time.monotonic()
+    self._display.refresh()
     duration = time.monotonic()-start
-    update_time = self.display.time_to_refresh - duration
+
+    update_time = self._display.time_to_refresh - duration
     if update_time > 0.0:
       # might running on battery-power: save some power using light-sleep
       time_alarm = alarm.time.TimeAlarm(
