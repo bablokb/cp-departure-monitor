@@ -57,12 +57,17 @@ class HalBase:
 
     self._display.root_group = content
 
-    if self._display.time_to_refresh > 0.0:
+    while self._display.time_to_refresh > 0.0:
       # ttr will be >0 only if system is on running on USB-power
       time.sleep(self._display.time_to_refresh)
 
     start = time.monotonic()
-    self._display.refresh()
+    while True:
+      try:
+        self._display.refresh()
+        break
+      except RuntimeError:
+        pass
     duration = time.monotonic()-start
 
     update_time = self._display.time_to_refresh - duration
