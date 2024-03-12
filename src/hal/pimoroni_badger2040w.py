@@ -33,6 +33,11 @@ class HalBadger2040W(HalBase):
     """ turn off power by pulling enable pin low """
     board.ENABLE_DIO.value = 0
 
+  def reset_if_needed(self):
+    """ reset device (workaround for MemoryError) """
+    import supervisor
+    supervisor.reload()
+
   def get_keys(self):
     """ return list of pin-numbers for up, down, left, right """
     # format is (active-state,[key1,...])

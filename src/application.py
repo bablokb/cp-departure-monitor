@@ -67,6 +67,7 @@ class Application:
     self._shutdown  = hal.impl.shutdown
     self.sleep      = hal.impl.sleep
     self._show      = hal.impl.show
+    self.reset      = hal.impl.reset_if_needed
     if with_rtc:
       self._rtc_ext = hal.impl.get_rtc_ext()
       if self._rtc_ext:

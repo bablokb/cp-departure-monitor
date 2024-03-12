@@ -85,6 +85,10 @@ class HalBase:
     """ shutdown system """
     pass
 
+  def reset_if_needed(self):
+    """ reset device (workaround for MemoryError) """
+    pass
+
   def sleep(self,duration):
     """ sleep for the given duration in seconds """
     time.sleep(duration)

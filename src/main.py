@@ -124,6 +124,7 @@ class DepMon(Application):
             self.process_keys(event.key_number)
       else:
         self.sleep(app_config.upd_time - (time.monotonic()-start))
+      self.reset()  # hack for systems with low memory
 
 # --- main application code   -------------------------------------------------
 
