@@ -69,7 +69,7 @@ class DepmonUIProvider:
     """ get departure text """
 
     # get column-width for delay and line-name
-    wmax_delay = 0
+    wmax_delay = 1
     wmax_line  = 0
     for index,d in enumerate(self._info):
       if index < self._rindex:
@@ -90,7 +90,10 @@ class DepmonUIProvider:
         continue
       elif index == self._rindex + UI_SETTINGS.ROWS:
         break
-      if d.delay > 0:
+      if d.cancelled:
+        sign = ' '
+        delay = 'X'*wmax_delay
+      elif d.delay > 0:
         sign = '+'
         delay = str(d.delay)
       elif d.delay < 0:

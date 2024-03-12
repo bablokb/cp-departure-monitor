@@ -30,11 +30,12 @@ URL_SUFFIX='departures?linesOfStops=false&remarks=false&pretty=false'
 
 class DepInfo:
   """ Value-holder for departure information """
-  def __init__(self,plan,delay,line,dir):
-    self.plan  = plan
-    self.delay = delay
-    self.line  = line
-    self.dir   = dir
+  def __init__(self,plan,delay,line,dir,cancelled):
+    self.plan      = plan
+    self.delay     = delay
+    self.line      = line
+    self.dir       = dir
+    self.cancelled = cancelled
 
 class StatInfo:
   """ departure info for a station """
@@ -128,6 +129,7 @@ class DepmonDataProvider:
 
       for dep in jdata["departures"]:
         stat_name = dep["stop"]["name"]
+        cancelled = dep["when"] is None
         hour,minute,offset = self._parse_time(dep["plannedWhen"])
         plan  = ":".join([hour,minute])
         delay = dep["delay"]
@@ -140,7 +142,7 @@ class DepmonDataProvider:
         # filter for given line
         if line and name != line:
           continue
-        info.append(DepInfo(plan,delay,name,direction))
+        info.append(DepInfo(plan,delay,name,direction,cancelled))
 
       # get update-timepoint (robust code, might not exist)
       updated = jdata["realtimeDataUpdatedAt"]
