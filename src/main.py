@@ -32,10 +32,12 @@ class DepMon(Application):
   KEY_UP, KEY_DOWN, KEY_LEFT, KEY_RIGHT = list(range(4))
   try:
     PYGAME_KEYMAP = {
-      pygame.K_UP:    KEY_UP,
-      pygame.K_DOWN:  KEY_DOWN,
-      pygame.K_LEFT:  KEY_LEFT,
-      pygame.K_RIGHT: KEY_RIGHT
+      pygame.K_UP:       KEY_UP,
+      pygame.K_PAGEUP:   KEY_UP,
+      pygame.K_DOWN:     KEY_DOWN,
+      pygame.K_PAGEDOWN: KEY_DOWN,
+      pygame.K_LEFT:     KEY_LEFT,
+      pygame.K_RIGHT:    KEY_RIGHT
       }
   except:
     pass
@@ -85,9 +87,9 @@ class DepMon(Application):
   # --- key-handler for PyGame-Display environment   -------------------------
 
   def on_event(self,ev):
-    if ev.key == pygame.K_ESCAPE:
+    if ev.key in [pygame.K_ESCAPE,pygame.K_q]:
       sys.exit(0)
-    else:
+    elif ev.key in DepMon.PYGAME_KEYMAP:
       self.process_keys(DepMon.PYGAME_KEYMAP[ev.key])
 
   # --- main loop for PyGame-Display environment   ---------------------------
