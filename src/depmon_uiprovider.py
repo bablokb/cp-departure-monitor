@@ -15,10 +15,6 @@ import traceback
 import gc
 
 import displayio
-from adafruit_bitmap_font import bitmap_font
-from adafruit_display_text import label as label
-from adafruit_display_shapes.line import Line
-from vectorio import Rectangle
 
 from settings import app_config
 from ui_settings import UI_SETTINGS
@@ -111,6 +107,11 @@ class DepmonUIProvider:
 
   def create_ui(self,display):
     """ create ui """
+
+    from adafruit_bitmap_font import bitmap_font
+    from adafruit_display_text import label as label
+    from adafruit_display_shapes.line import Line
+    from vectorio import Rectangle
 
     self._view = displayio.Group()
     font = bitmap_font.load_font(UI_SETTINGS.FONT)
