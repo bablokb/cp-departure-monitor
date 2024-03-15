@@ -17,6 +17,7 @@ import gc
 import displayio
 from adafruit_bitmap_font import bitmap_font
 from adafruit_display_text import label as label
+from adafruit_display_shapes.line import Line
 from vectorio import Rectangle
 
 from settings import app_config
@@ -117,17 +118,21 @@ class DepmonUIProvider:
     self._view.append(Rectangle(pixel_shader=UI_SETTINGS.PALETTE,x=0,y=0,
                        width=display.width,
                        height=display.height,
-                       color_index=UI_SETTINGS.BG_COLOR))
+                       color_index=UI_SETTINGS.BG_INDEX))
 
     # create title-label (top-center)
-    self._header = label.Label(font=font,color=UI_SETTINGS.FG_PALETTE,
+    self._header = label.Label(font=font,color=UI_SETTINGS.FG_COLOR,
                           text="PLACEHOLDER",
                           anchor_point=(0.5,0))
     self._header.anchored_position = (display.width/2,UI_SETTINGS.MARGIN)
     self._view.append(self._header)
 
+    h = self._header.height + 2
+    sep = Line(0,h,display.width,h,color=UI_SETTINGS.FG_COLOR)
+    self._view.append(sep)
+
     # create departure label (left-middle)
-    self._dep = label.Label(font=font,color=UI_SETTINGS.FG_PALETTE,
+    self._dep = label.Label(font=font,color=UI_SETTINGS.FG_COLOR,
                             tab_replacement=(2," "),
                             line_spacing=1,
                             text="\n".join(
@@ -137,12 +142,16 @@ class DepmonUIProvider:
     self._view.append(self._dep)
 
     # create footer-label (left-bottom)
-    self._footer = label.Label(font=font,color=UI_SETTINGS.FG_PALETTE,
+    self._footer = label.Label(font=font,color=UI_SETTINGS.FG_COLOR,
                           text="PLACEHOLDER",
                           anchor_point=(0,1))
     self._footer.anchored_position = (UI_SETTINGS.MARGIN,
                                  display.height-UI_SETTINGS.MARGIN)
     self._view.append(self._footer)
+
+    h = display.height - (self._footer.height+2)
+    sep = Line(0,h,display.width,h,color=UI_SETTINGS.FG_COLOR)
+    self._view.append(sep)
 
     return self._view
 
