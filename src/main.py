@@ -114,7 +114,7 @@ class DepMon(Application):
                          interval=0.1,max_events=4)
     while True:
       start = time.monotonic()
-      app.run()
+      self.run()
       if self.keys:
         while time.monotonic()-start < app_config.upd_time:
           event = keys.events.get()
