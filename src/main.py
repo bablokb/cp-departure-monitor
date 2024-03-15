@@ -116,6 +116,8 @@ class DepMon(Application):
       start = time.monotonic()
       self.run()
       if self.keys:
+        # clear pending key-events (i.e. keys pressed during self.run())
+        keys.events.clear()
         while time.monotonic()-start < app_config.upd_time:
           event = keys.events.get()
           if event:
