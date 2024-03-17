@@ -62,7 +62,8 @@ class DepmonDataProvider:
   def _mem_free(self,msg):
     """ print free memory (not available with Blinka) """
     try:
-      print(f"{msg}: {gc.mem_free()}")
+      #print(f"{msg}: {gc.mem_free()}")
+      pass
     except:
       pass
 

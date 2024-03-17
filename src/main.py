@@ -26,6 +26,8 @@ from depmon_dataprovider import DepmonDataProvider as DataProvider
 from settings import app_config
 from ui_settings import UI_SETTINGS
 
+DEBUG = getattr(app_config,'debug',False)
+
 class DepMon(Application):
   """ Departure-Monitor main-application class """
 
@@ -48,7 +50,7 @@ class DepMon(Application):
     """ constructor """
     ui_provider   = UIProvider()
     data_provider = DataProvider()
-    super().__init__(data_provider,ui_provider,with_rtc=False)
+    super().__init__(data_provider,ui_provider,with_rtc=False,debug=DEBUG)
     self.blink(0.5)
 
     # fill initial values for model
@@ -108,7 +110,6 @@ class DepMon(Application):
     """ main-loop for normal environment """
 
     if self.keys:
-      print(f"{self.keys=}")
       keys = keypad.Keys(self.keys[1],
                          value_when_pressed=self.keys[0],pull=True,
                          interval=0.1,max_events=4)
@@ -120,8 +121,6 @@ class DepMon(Application):
         keys.events.clear()
         while time.monotonic()-start < app_config.upd_time:
           event = keys.events.get()
-          if event:
-            print(f"{event=}")
           if event and event.pressed:
             self.process_keys(event.key_number)
       else:

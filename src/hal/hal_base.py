@@ -41,10 +41,10 @@ class HalBase:
     else:
       return 0.0
 
-  def wifi(self):
+  def wifi(self,debug=False):
     """ return wifi-interface """
     from wifi_helper_builtin import WifiHelper
-    return WifiHelper(debug=True)
+    return WifiHelper(debug=debug)
 
   def get_display(self):
     """ return display """

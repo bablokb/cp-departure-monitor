@@ -18,32 +18,16 @@ import traceback
 
 from settings import app_config
 
-# Import HAL (hardware-abstraction-layer).
-# This expects an object "impl" within the implementing hal_file.
-# All hal implementations are within src/hal/. Filenames must be
-# board.board_id.py, e.g. src/hal/pimoroni_inky_frame_5_7.py
-
-try:
-  hal_file = "hal."+board.board_id.replace(".","_")
-  hal = builtins.__import__(hal_file,None,None,["impl"],0)
-  print("using board-specific implementation")
-except Exception as ex:
-  print(f"!!! error or no board specific HAL: {ex}. Trouble ahead !!!")
-  hal_file = "hal.hal_default"
-  hal = builtins.__import__(hal_file,None,None,["impl"],0)
-  print("using default implementation")
-
-from settings import app_config
-
 # --- application class   ----------------------------------------------------
 
 class Application:
 
   # --- constructor   --------------------------------------------------------
 
-  def __init__(self,dataprovider,uiprovider,with_rtc=True):
+  def __init__(self,dataprovider,uiprovider,with_rtc=True,debug=False):
     """ constructor """
 
+    self._debug = debug
     self._setup(with_rtc)  # setup hardware
     if with_rtc and self._rtc_ext:
       self._rtc_ext.update_time(app_config.time_url)
@@ -53,17 +37,40 @@ class Application:
     self._uiprovider   = uiprovider
     self.data = {}
 
-  # --- setup hardware   -----------------------------------------------------
+  # --- get HAL   ------------------------------------------------------------
+
+  # Import HAL (hardware-abstraction-layer).
+  # This expects an object "impl" within the implementing hal_file.
+  # All hal implementations are within src/hal/. Filenames must be
+  # board.board_id.py, e.g. src/hal/pimoroni_inky_frame_5_7.py
+
+  def _get_hal(self):
+    """ read and return hal-object """
+
+    try:
+      hal_file = "hal."+board.board_id.replace(".","_")
+      hal = builtins.__import__(hal_file,None,None,["impl"],0)
+      self.msg("using board-specific implementation")
+    except Exception as ex:
+      self.msg(f"!!! error or no board specific HAL: {ex}. Trouble ahead !!!")
+      hal_file = "hal.hal_default"
+      hal = builtins.__import__(hal_file,None,None,["impl"],0)
+      self.msg("using default implementation")
+    return hal
+
+  # --- hardware setup   -----------------------------------------------------
 
   def _setup(self,with_rtc):
     """ setup hardware """
+
+    hal = self._get_hal()
     
     self.display    = hal.impl.get_display()
     self.is_pygame  = hasattr(self.display,"check_quit")
     self.bat_level  = hal.impl.bat_level
     self._led       = hal.impl.status_led
     self.keys       = hal.impl.get_keys()
-    self.wifi       = hal.impl.wifi()
+    self.wifi       = hal.impl.wifi(self._debug)
     self._shutdown  = hal.impl.shutdown
     self.sleep      = hal.impl.sleep
     self._show      = hal.impl.show
@@ -72,6 +79,15 @@ class Application:
       self._rtc_ext = hal.impl.get_rtc_ext()
       if self._rtc_ext:
         self._rtc_ext.set_wifi(self.wifi)
+
+    gc.collect()
+
+  # --- print debug-message   ------------------------------------------------
+
+  def msg(self,text):
+    """ print (debug) message """
+    if self._debug:
+      print(text)
 
   # --- update data from server   --------------------------------------------
 
@@ -83,7 +99,7 @@ class Application:
     start = time.monotonic()
     self._dataprovider.update_data(self.data)
     duration = time.monotonic()-start
-    print(f"update_data (dataprovider): {duration:f}s")
+    self.msg(f"update_data (dataprovider): {duration:f}s")
 
   # --- create ui   ----------------------------------------------------------
 
@@ -93,7 +109,7 @@ class Application:
     start = time.monotonic()
     self._ui = self._uiprovider.create_ui(self.display)
     duration = time.monotonic()-start
-    print(f"create_content (uiprovider): {duration:f}s")
+    self.msg(f"create_content (uiprovider): {duration:f}s")
 
   # --- update display   -----------------------------------------------------
 
@@ -104,13 +120,13 @@ class Application:
     start = time.monotonic()
     self._uiprovider.update_ui(self.data)
     duration = time.monotonic()-start
-    print(f"update_ui (uiprovider): {duration:f}s")
+    self.msg(f"update_ui (uiprovider): {duration:f}s")
 
     # and show content on screen
     start = time.monotonic()
     self._show(self._ui)
     duration = time.monotonic()-start
-    print(f"show (HAL): {duration:f}s")
+    self.msg(f"show (HAL): {duration:f}s")
 
   # --- free memory from UI   ------------------------------------------------
 
@@ -118,11 +134,11 @@ class Application:
     """ free memory used by UI and display """
 
     if not self.is_pygame:
-      print(f"free memory before clear of UI: {gc.mem_free()}")
+      self.msg(f"free memory before clear of UI: {gc.mem_free()}")
       self.display.root_group = None
       self._uiprovider.clear_ui()
       #gc.collect()
-      print(f"free memory after clear of UI: {gc.mem_free()}")
+      self.msg(f"free memory after clear of UI: {gc.mem_free()}")
 
   # --- blink status-led   ---------------------------------------------------
 

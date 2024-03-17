@@ -45,10 +45,10 @@ class HalPygame(HalBase):
     """ set status LED """
     pass
 
-  def wifi(self):
+  def wifi(self,debug=False):
     """ return wifi-interface """
     from wifi_helper_generic import WifiHelper
-    return WifiHelper(debug=True)
+    return WifiHelper(debug=debug)
 
   def shutdown(self):
     """ leave program (here: wait for quit)"""
