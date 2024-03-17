@@ -39,6 +39,7 @@ class DepmonUIProvider:
     """ update data: callback for Application """
 
     # update model
+    self._bat_level = new_data["bat_level"]
     c_index = new_data["station_index"]
     station = app_config.stations[c_index][0]
     self._rindex = new_data["row"]
@@ -47,13 +48,14 @@ class DepmonUIProvider:
     self._update = new_data["departures"][station].update
 
     # update UI
-    self._header.text = self._name
-    self._footer.text = self._get_footer_text()
-    self._dep.text    = self._get_departure_text()
+    self._header.text  = self._name
+    self._footerL.text = self._get_footerL_text()
+    self._footerR.text = f"{self._bat_level:0.1f}V"
+    self._dep.text     = self._get_departure_text()
 
   # --- query footer text   --------------------------------------------------
 
-  def _get_footer_text(self):
+  def _get_footerL_text(self):
     """ pretty print update time """
 
     ltime = getattr(time,'gmtime',time.localtime) # use time.gmtime with CPython
@@ -142,15 +144,23 @@ class DepmonUIProvider:
     self._dep.anchored_position = (UI_SETTINGS.MARGIN,display.height/2)
     self._view.append(self._dep)
 
-    # create footer-label (left-bottom)
-    self._footer = label.Label(font=font,color=UI_SETTINGS.FG_COLOR,
+    # create footer-label (update-time, left-bottom)
+    self._footerL = label.Label(font=font,color=UI_SETTINGS.FG_COLOR,
                           text="PLACEHOLDER",
                           anchor_point=(0,1))
-    self._footer.anchored_position = (UI_SETTINGS.MARGIN,
+    self._footerL.anchored_position = (UI_SETTINGS.MARGIN,
                                  display.height-UI_SETTINGS.MARGIN)
-    self._view.append(self._footer)
+    self._view.append(self._footerL)
 
-    h = display.height - (self._footer.height+2)
+    # create footer-label (voltage, right-bottom)
+    self._footerR = label.Label(font=font,color=UI_SETTINGS.FG_COLOR,
+                          text="0.0V",
+                          anchor_point=(1,1))
+    self._footerR.anchored_position = (display.width-UI_SETTINGS.MARGIN,
+                                 display.height-UI_SETTINGS.MARGIN)
+    self._view.append(self._footerR)
+
+    h = display.height - max(self._footerL.height,self._footerR.height) - 2
     sep = Line(0,h,display.width,h,color=UI_SETTINGS.FG_COLOR)
     self._view.append(sep)
 
