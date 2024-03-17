@@ -68,7 +68,7 @@ class Application:
     self.display    = hal.impl.get_display()
     self.is_pygame  = hasattr(self.display,"check_quit")
     self.bat_level  = hal.impl.bat_level
-    self._led       = hal.impl.status_led
+    self.led        = hal.impl.status_led
     self.keys       = hal.impl.get_keys()
     self.wifi       = hal.impl.wifi(self._debug)
     self._shutdown  = hal.impl.shutdown
@@ -94,11 +94,13 @@ class Application:
   def update_data(self):
     """ update data """
 
+    self.led(1)
     self.data["bat_level"] = self.bat_level()
 
     start = time.monotonic()
     self._dataprovider.update_data(self.data)
     duration = time.monotonic()-start
+    self.led(0)
     self.msg(f"update_data (dataprovider): {duration:f}s")
 
   # --- create ui   ----------------------------------------------------------
@@ -144,9 +146,9 @@ class Application:
 
   def blink(self,duration):
     """ blink status-led once for the given duration """
-    self._led(1)
+    self.led(1)
     time.sleep(duration)
-    self._led(0)
+    self.led(0)
 
   # --- shutdown device   ----------------------------------------------------
 
