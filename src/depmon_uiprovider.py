@@ -12,6 +12,7 @@
 
 import time
 import traceback
+import re
 import gc
 
 import displayio
@@ -48,10 +49,21 @@ class DepmonUIProvider:
     self._update = new_data["departures"][station].update
 
     # update UI
-    self._header.text  = self._name
+    self._header.text  = self._replace(self._name)
     self._footerL.text = self._get_footerL_text()
     self._footerR.text = f"{self._bat_level:0.1f}V"
-    self._dep.text     = self._get_departure_text()
+    self._dep.text     = self._replace(self._get_departure_text())
+
+  # --- replace pre-defined strings   ----------------------------------------
+
+  def _replace(self,text):
+    """ replace predefined strings """
+
+    patterns = getattr(app_config,'replace',[])
+    result = text
+    for src,dest in patterns:
+      result = re.sub(src,dest,result)
+    return result
 
   # --- query footer text   --------------------------------------------------
 
