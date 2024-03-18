@@ -17,8 +17,11 @@ import sys
 import time
 try:
   import pygame
+  alarm = {}
 except:
+  # running CircuitPython on a MCU
   import keypad
+  import alarm
 
 from application import Application
 from depmon_uiprovider   import DepmonUIProvider   as UIProvider
@@ -48,20 +51,25 @@ class DepMon(Application):
 
   def __init__(self):
     """ constructor """
-    ui_provider   = UIProvider()
-    data_provider = DataProvider()
+    ui_provider   = UIProvider(debug=DEBUG)
+    data_provider = DataProvider(debug=DEBUG)
     super().__init__(data_provider,ui_provider,with_rtc=False,debug=DEBUG)
     self.blink(0.5)
 
     # fill initial values for model
-    self.data["station_index"] = 0
     self.data["row"]           = 0
+    self.data["station_index"] = 0
+    if hasattr(alarm,'sleep_memory'):
+      index = alarm.sleep_memory[0]
+      if index < len(app_config.stations):
+        self.data["station_index"] = index
 
   # --- process keys by number   ----------------------------------------------
 
   def process_keys(self,key_nr):
     """ process key by nr: up, down, left, right """
 
+    self.msg(f"process_keys for: {key_nr}")
     c_index = self.data["station_index"]
     n_departures = len(self.data["departures"]
                        [app_config.stations[c_index][0]].info)
@@ -69,10 +77,14 @@ class DepMon(Application):
     if  key_nr == DepMon.KEY_RIGHT:
       if c_index < len(app_config.stations)-1:
         self.data["station_index"] += 1
+        if hasattr(alarm,'sleep_memory'):
+          alarm.sleep_memory[0] = self.data["station_index"]
       self.data["row"] = 0
     elif key_nr == DepMon.KEY_LEFT:
       if c_index > 0:
         self.data["station_index"] -= 1
+        if hasattr(alarm,'sleep_memory'):
+          alarm.sleep_memory[0] = self.data["station_index"]
       self.data["row"] = 0
     elif key_nr == DepMon.KEY_DOWN:
       self.data["row"] += UI_SETTINGS.ROWS
@@ -119,6 +131,7 @@ class DepMon(Application):
       if self.keys:
         # clear pending key-events (i.e. keys pressed during self.run())
         keys.events.clear()
+        self.msg("polling for keys...")
         while time.monotonic()-start < app_config.upd_time:
           event = keys.events.get()
           if event and event.pressed:
