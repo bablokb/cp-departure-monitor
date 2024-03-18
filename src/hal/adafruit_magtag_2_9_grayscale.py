@@ -10,16 +10,33 @@
 
 import board
 from analogio import AnalogIn
+from digitalio import DigitalInOut, Direction
+
+import neopixel
 
 from hal.hal_base import HalBase
 
 class HalMagtag(HalBase):
   """ Magtag specific HAL-class """
-  
+
   def __init__(self):
     """ constructor """
     self._bat_mon = AnalogIn(board.BATTERY)
     super().__init__()
+
+  def status_led(self,value):
+    """ set status LED """
+    if not hasattr(self,"_pixels"):
+      self._neo_poweroff = DigitalInOut(board.NEOPIXEL_POWER)
+      self._neo_poweroff.direction = Direction.OUTPUT
+      self._pixels = neopixel.NeoPixel(
+        board.NEOPIXEL,4,brightness=0.1,auto_write=False)
+      self._pixels.fill([255,0,0])
+
+    # activate or deactivate the pixels
+    self._neo_poweroff.value = not value
+    if value:
+      self._pixels.show()
 
   def bat_level(self):
     """ return battery level """
