@@ -26,14 +26,22 @@ class DepmonUIProvider:
 
   # --- constructor   --------------------------------------------------------
 
-  def __init__(self):
+  def __init__(self,debug=False):
     """ constructor: create ressources """
 
+    self._debug  = debug
     self._view   = None
     self._info   = None
     self._name   = None
     self._update = None
-    
+
+  # --- print debug-message   ------------------------------------------------
+
+  def msg(self,text):
+    """ print (debug) message """
+    if self._debug:
+      print(text)
+
   # --- update data   --------------------------------------------------------
 
   def update_ui(self,new_data):

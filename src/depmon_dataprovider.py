@@ -48,8 +48,16 @@ class StatInfo:
 
 class DepmonDataProvider:
 
-  def __init__(self):
-    self._wifi   = None
+  def __init__(self,debug=False):
+    self._debug = debug
+    self._wifi  = None
+
+  # --- print debug-message   ------------------------------------------------
+
+  def msg(self,text):
+    """ print (debug) message """
+    if self._debug:
+      print(text)
 
   # --- set wifi-object   ----------------------------------------------------
 
@@ -59,11 +67,10 @@ class DepmonDataProvider:
 
   # --- trace memory   -------------------------------------------------------
 
-  def _mem_free(self,msg):
+  def _mem_free(self,label):
     """ print free memory (not available with Blinka) """
     try:
-      #print(f"{msg}: {gc.mem_free()}")
-      pass
+      self.msg(f"{label}: {gc.mem_free()}")
     except:
       pass
 
@@ -122,6 +129,7 @@ class DepmonDataProvider:
     dm_data = {"departures": {}, "update": None}
 
     for station,via,product,line in app_config.stations:
+      self.msg(f"fetching departures for {station}")
       info = []
       url   = self._create_url(station,via,product)
       self._mem_free("free memory before wifi.get()")
