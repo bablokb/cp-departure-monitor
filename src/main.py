@@ -54,7 +54,7 @@ class DepMon(Application):
     ui_provider   = UIProvider(debug=DEBUG)
     data_provider = DataProvider(debug=DEBUG)
     super().__init__(data_provider,ui_provider,with_rtc=False,debug=DEBUG)
-    self.blink(0.5)
+    self.blink(0.1,color=Application.GREEN)
 
     # fill initial values for model
     self.data["row"]           = 0

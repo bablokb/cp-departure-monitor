@@ -41,8 +41,8 @@ class HalPygame(HalBase):
     """ return battery level """
     return 3.6
 
-  def status_led(self,value):
-    """ set status LED """
+  def led(self,value,color=None):
+    """ set status LED (not-supported)"""
     pass
 
   def wifi(self,debug=False):

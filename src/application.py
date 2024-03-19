@@ -22,6 +22,9 @@ from settings import app_config
 
 class Application:
 
+  RED   = [255,0,0]
+  GREEN = [0,255,0]
+
   # --- constructor   --------------------------------------------------------
 
   def __init__(self,dataprovider,uiprovider,with_rtc=True,debug=False):
@@ -68,7 +71,7 @@ class Application:
     self.display    = hal.impl.get_display()
     self.is_pygame  = hasattr(self.display,"check_quit")
     self.bat_level  = hal.impl.bat_level
-    self.led        = hal.impl.status_led
+    self.led        = hal.impl.led
     self.keys       = hal.impl.get_keys()
     self.wifi       = hal.impl.wifi(self._debug)
     self._shutdown  = hal.impl.shutdown
@@ -94,13 +97,13 @@ class Application:
   def update_data(self):
     """ update data """
 
-    self.led(1)
+    self.blink(0.3,color=Application.RED)
     self.data["bat_level"] = self.bat_level()
 
     start = time.monotonic()
     self._dataprovider.update_data(self.data)
     duration = time.monotonic()-start
-    self.led(0)
+    self.blink(0.3,color=Application.GREEN)
     self.msg(f"update_data (dataprovider): {duration:f}s")
 
   # --- create ui   ----------------------------------------------------------
@@ -144,11 +147,11 @@ class Application:
 
   # --- blink status-led   ---------------------------------------------------
 
-  def blink(self,duration):
+  def blink(self,duration,color=RED):
     """ blink status-led once for the given duration """
-    self.led(1)
+    self.led(1,color=color)
     time.sleep(duration)
-    self.led(0)
+    self.led(0,color=color)
 
   # --- shutdown device   ----------------------------------------------------
 

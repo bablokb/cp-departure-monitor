@@ -23,8 +23,8 @@ class HalBase:
     """ constructor """
     self._display = None
 
-  def status_led(self,value):
-    """ set status LED """
+  def led(self,value,color=None):
+    """ set status LED (ignore color) """
     if not hasattr(self,"_led"):
       self._led = DigitalInOut(board.LED)
       self._led.direction = Direction.OUTPUT

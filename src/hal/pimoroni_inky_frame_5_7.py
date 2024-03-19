@@ -16,8 +16,8 @@ from hal.hal_base import HalBase
 class HalInkyFrame57(HalBase):
   """ InkyFrame 5.7 specific HAL-class """
 
-  def status_led(self,value):
-    """ set status LED """
+  def led(self,value,color=None):
+    """ set status LED (ignore color)"""
     if not hasattr(self,"_led"):
       self._led = DigitalInOut(board.LED_ACT)
       self._led.direction = Direction.OUTPUT

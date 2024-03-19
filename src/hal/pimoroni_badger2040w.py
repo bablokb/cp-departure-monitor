@@ -16,8 +16,8 @@ from hal.hal_base import HalBase
 class HalBadger2040W(HalBase):
   """ Badger2040W specific HAL-class """
 
-  def status_led(self,value):
-    """ set status LED """
+  def led(self,value,color=None):
+    """ set status LED (ignore color)"""
     if not hasattr(self,"_led"):
       self._led = DigitalInOut(board.USER_LED)
       self._led.direction = Direction.OUTPUT
