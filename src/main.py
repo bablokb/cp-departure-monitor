@@ -71,8 +71,7 @@ class DepMon(Application):
 
     self.msg(f"process_keys for: {key_nr}")
     c_index = self.data["station_index"]
-    n_departures = len(self.data["departures"]
-                       [app_config.stations[c_index][0]].info)
+    n_departures = len(self.data["departures"][c_index].info)
 
     if  key_nr == DepMon.KEY_RIGHT:
       if c_index < len(app_config.stations)-1:

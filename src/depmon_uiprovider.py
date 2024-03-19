@@ -50,11 +50,10 @@ class DepmonUIProvider:
     # update model
     self._bat_level = new_data["bat_level"]
     c_index = new_data["station_index"]
-    station = app_config.stations[c_index][0]
     self._rindex = new_data["row"]
-    self._info   = new_data["departures"][station].info
-    self._name   = new_data["departures"][station].name
-    self._update = new_data["departures"][station].update
+    self._info   = new_data["departures"][c_index].info
+    self._name   = new_data["departures"][c_index].name
+    self._update = new_data["departures"][c_index].update
 
     # update UI
     self._header.text  = self._replace(self._name)

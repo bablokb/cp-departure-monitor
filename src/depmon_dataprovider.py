@@ -126,7 +126,7 @@ class DepmonDataProvider:
   def update_data(self,data):
     """ callback for App: query data """
 
-    dm_data = {"departures": {}, "update": None}
+    dm_data = {"departures": [], "update": None}
 
     for station,via,product,line in app_config.stations:
       self.msg(f"fetching departures for {station}")
@@ -163,6 +163,6 @@ class DepmonDataProvider:
       jdata = None
       gc.collect()
       self._mem_free("free memory after closing response")
-      dm_data["departures"][station] = StatInfo(stat_name,info,updated)
+      dm_data["departures"].append(StatInfo(stat_name,info,updated))
 
     data.update(dm_data)
