@@ -51,11 +51,8 @@ class HalPygame(HalBase):
     return WifiHelper(debug=debug)
 
   def shutdown(self):
-    """ leave program (here: wait for quit)"""
-    while True:
-      if self._display.check_quit():
-        sys.exit(0)
-      time.sleep(0.1)
+    """ leave program """
+    sys.exit(0)
 
   def sleep(self,duration):
     if not self._display:
