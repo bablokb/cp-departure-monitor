@@ -66,10 +66,14 @@ class DepmonUIProvider:
   def _replace(self,text):
     """ replace predefined strings """
 
+    self.msg(f"before replace:")
+    self.msg(f"{text}")
     patterns = getattr(app_config,'replace',[])
     result = text
     for src,dest in patterns:
       result = re.sub(src,dest,result)
+    self.msg(f"after  replace:")
+    self.msg(f"{result}")
     return result
 
   # --- query footer text   --------------------------------------------------
