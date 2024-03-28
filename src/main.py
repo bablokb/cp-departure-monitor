@@ -59,10 +59,13 @@ class DepMon(Application):
     # fill initial values for model
     self.data["row"]           = 0
     self.data["station_index"] = 0
-    if hasattr(alarm,'sleep_memory'):
-      index = alarm.sleep_memory[0]
-      if index < len(app_config.stations):
-        self.data["station_index"] = index
+    try:
+      if hasattr(alarm,'sleep_memory'):
+        index = alarm.sleep_memory[0]
+        if index < len(app_config.stations):
+          self.data["station_index"] = index
+    except:
+      pass
 
   # --- process keys by number   ----------------------------------------------
 
@@ -76,14 +79,20 @@ class DepMon(Application):
     if  key_nr == DepMon.KEY_RIGHT:
       if c_index < len(app_config.stations)-1:
         self.data["station_index"] += 1
-        if hasattr(alarm,'sleep_memory'):
-          alarm.sleep_memory[0] = self.data["station_index"]
+        try:
+          if hasattr(alarm,'sleep_memory'):
+            alarm.sleep_memory[0] = self.data["station_index"]
+        except:
+          pass
       self.data["row"] = 0
     elif key_nr == DepMon.KEY_LEFT:
       if c_index > 0:
         self.data["station_index"] -= 1
-        if hasattr(alarm,'sleep_memory'):
-          alarm.sleep_memory[0] = self.data["station_index"]
+        try:
+          if hasattr(alarm,'sleep_memory'):
+            alarm.sleep_memory[0] = self.data["station_index"]
+        except:
+          pass
       self.data["row"] = 0
     elif key_nr == DepMon.KEY_DOWN:
       self.data["row"] += UI_SETTINGS.ROWS
@@ -100,20 +109,46 @@ class DepMon(Application):
   # --- key-handler for PyGame-Display environment   -------------------------
 
   def on_event(self,ev):
+    """ process key-press """
+
+    self._last_key_time = time.monotonic()          # reset time of last key
     if ev.key in [pygame.K_ESCAPE,pygame.K_q]:
       sys.exit(0)
     elif ev.key in DepMon.PYGAME_KEYMAP:
       self.process_keys(DepMon.PYGAME_KEYMAP[ev.key])
+
+  # --- event-handler for PyGame-Display environment   -----------------------
+
+  def on_time(self):
+    """ process regular action """
+
+    # check for auto-shutdown if no activity for longer than off_time
+    rest_time = app_config.off_time - (time.monotonic()-self._last_key_time)
+    if app_config.off_time and rest_time <= 0:
+      self.msg(f"shutdown due to {app_config.off_time}s of inactivity")
+      self.shutdown()
+    else:
+      if app_config.off_time:
+        rest_time = max(app_config.upd_time,int(rest_time))
+        self.msg(f"about {rest_time}s left before auto-shutdown")
+
+    # next cycle: fetch data and update display
+    # note: this should be in a separate thread, not in the event-handler,
+    #       but for simplicity, we do it here
+    self.run()
 
   # --- main loop for PyGame-Display environment   ---------------------------
 
   def run_pygame(self):
     """ event-loop for PyGame-Display environment """
 
+    # track time of inactivity for automatic shutdown
+    self._last_key_time = time.monotonic()
+
     self.run()
     self.display.event_loop(
       interval=app_config.upd_time,
-      on_time=self.run, on_event=self.on_event, events=[pygame.KEYDOWN])
+      on_time=self.on_time, on_event=self.on_event, events=[pygame.KEYDOWN])
 
   # --- main loop for normal CircuitPython environment   ---------------------
 
@@ -124,6 +159,10 @@ class DepMon(Application):
       keys = keypad.Keys(self.keys[1],
                          value_when_pressed=self.keys[0],pull=True,
                          interval=0.1,max_events=4)
+
+    # track time of inactivity for automatic shutdown
+    self._last_key_time = time.monotonic()
+
     while True:
       start = time.monotonic()
       self.run()
@@ -134,10 +173,22 @@ class DepMon(Application):
         while time.monotonic()-start < app_config.upd_time:
           event = keys.events.get()
           if event and event.pressed:
+            self._last_key_time = time.monotonic()
             self.process_keys(event.key_number)
       else:
         self.sleep(app_config.upd_time - (time.monotonic()-start))
-      self.reset()  # hack for systems with low memory
+
+      # check for auto-shutdown if no activity for longer than off_time
+      rest_time = app_config.off_time - (time.monotonic()-self._last_key_time)
+      if app_config.off_time and rest_time <= 0:
+        self.msg(f"shutdown due to {app_config.off_time}s of inactivity")
+        self.shutdown()
+      else:
+        #self.free_ui_memory()
+        self.reset()  # hack for systems with low memory, noop otherwise
+        if app_config.off_time:
+          rest_time = max(app_config.upd_time,int(rest_time))
+          self.msg(f"about {rest_time}s left before auto-shutdown")
 
 # --- main application code   -------------------------------------------------
 
