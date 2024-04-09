@@ -23,12 +23,37 @@ class HalBase:
     """ constructor """
     self._display = None
 
-  def led(self,value,color=None):
-    """ set status LED (ignore color) """
-    if not hasattr(self,"_led"):
-      self._led = DigitalInOut(board.LED)
-      self._led.direction = Direction.OUTPUT
-    self._led.value = value
+  def _init_led(self):
+    """ initialize LED/Neopixel """
+    if hasattr(board,'NEOPIXEL'):
+      if not hasattr(self,'_pixel'):
+        if hasattr(board,'NEOPIXEL_POWER'):
+          # need to do this first,
+          # https://github.com/adafruit/Adafruit_CircuitPython_MagTag/issues/75
+          self._pixel_poweroff = DigitalInOut(board.NEOPIXEL_POWER)
+          self._pixel_poweroff.direction = Direction.OUTPUT
+        import neopixel
+        self._pixel = neopixel.NeoPixel(board.NEOPIXEL,1,
+                                        brightness=0.1,auto_write=False)
+    elif hasattr(board,'LED'):
+      if not hasattr(self,'_led'):
+        self._led = DigitalInOut(board.LED)
+        self._led.direction = Direction.OUTPUT
+
+    # replace method with noop
+    self._init_led = lambda: None
+
+  def led(self,value,color=[255,0,0]):
+    """ set status LED/Neopixel """
+    self._init_led()
+    if hasattr(self,'_led'):
+      self._led.value = value
+    elif hasattr(self,'_pixel'):
+      if hasattr(self,'_pixel_poweroff'):
+        self._pixel_poweroff.value = not value
+      if value:
+        self._pixel.fill(color)
+        self._pixel.show()
 
   def bat_level(self):
     """ return battery level """

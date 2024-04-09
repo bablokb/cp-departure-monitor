@@ -21,26 +21,15 @@ class HalMagtag(HalBase):
 
   def __init__(self):
     """ constructor """
-    self._bat_mon = AnalogIn(board.BATTERY)
     super().__init__()
-
-  def led(self,value,color=[255,0,0]):
-    """ set status LED """
-    if not hasattr(self,"_pixels"):
-      self._neo_poweroff = DigitalInOut(board.NEOPIXEL_POWER)
-      self._neo_poweroff.direction = Direction.OUTPUT
-      self._pixels = neopixel.NeoPixel(
-        board.NEOPIXEL,4,brightness=0.1,auto_write=False)
-
-    # activate or deactivate the pixels
-    self._neo_poweroff.value = not value
-    if value:
-      self._pixels.fill(color)
-      self._pixels.show()
 
   def bat_level(self):
     """ return battery level """
-    return (self._bat_mon.value / 65535.0) * 3.3 * 2
+    from analogio import AnalogIn
+    adc = AnalogIn(board.BATTERY)
+    level = (adc.value / 65535.0) * 3.3 * 2
+    adc.deinit()
+    return level
 
   def get_keys(self):
     """ return list of pin-numbers for up, down, left, right """
