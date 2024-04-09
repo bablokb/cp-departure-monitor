@@ -17,20 +17,10 @@
 import sys
 import time
 import board
-from blinka_displayio_pygamedisplay import PyGameDisplay
 from hal.hal_base import HalBase
 
 class HalPygame(HalBase):
   """ GENERIC_LINUX_PC specific HAL-class """
-
-  def get_display(self):
-    """ return display """
-    if self._display:
-      return self._display
-
-    self._display = PyGameDisplay(width=296,height=128,
-                                  native_frames_per_second=1)
-    return self._display
 
   def show(self,content):
     """ show and refresh the display """
