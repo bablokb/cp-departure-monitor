@@ -64,7 +64,7 @@ if __name__ == "__main__":
     products=products,
     direction=direction,
     date=datetime.datetime.now(),
-    duration=60,
+    duration=120,
     max_trips=10
     )
 
