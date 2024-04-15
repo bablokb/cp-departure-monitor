@@ -1,7 +1,7 @@
 Departure-Monitor for Public Transportation in Germany
 ======================================================
 
-This is a departure-monitor for railway, bus and other stations. It
+This is a departure-monitor for German railway, bus and other stations. It
 displays live-data (if available):
 
 ![](dep-monitor.png)
@@ -157,7 +157,7 @@ some buttons wired to various GPIO-pins.
 
 In this case, the hal-file would be `src/hal/raspberry_pi_pico_w.py`.
 Since this board does not define any specific hardware, the hal-file
-is actually not necessary since the system will use a sensible defaults
+is actually not necessary since the system will use sensible defaults
 if it does not find a specific hal-file.
 
 In this example, the definition of the display and the keys has to be
