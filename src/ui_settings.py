@@ -54,4 +54,4 @@ try:
     if var[0] != '_':
       setattr(UI_SETTINGS,var,getattr(ui_config,var))
 except:
-  raise
+  pass
