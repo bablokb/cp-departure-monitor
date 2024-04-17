@@ -77,6 +77,9 @@ class HalBase:
       if value:
         self._pixel.fill(color)
         self._pixel.show()
+      elif not hasattr(self,'_pixel_poweroff'):
+        self._pixel.fill(0)
+        self._pixel.show()
 
   def bat_level(self):
     """ return battery level """
@@ -108,9 +111,10 @@ class HalBase:
 
     self._display.root_group = content
 
-    while self._display.time_to_refresh > 0.0:
-      # ttr will be >0 only if system is on running on USB-power
-      time.sleep(self._display.time_to_refresh)
+    if hasattr(self._display,"time_to_refresh"):
+      while self._display.time_to_refresh > 0.0:
+        # ttr will be >0 only if system is on running on USB-power
+        time.sleep(self._display.time_to_refresh)
 
     start = time.monotonic()
     while True:
@@ -121,12 +125,13 @@ class HalBase:
         pass
     duration = time.monotonic()-start
 
-    update_time = self._display.time_to_refresh - duration
-    if update_time > 0.0:
-      # might running on battery-power: save some power using light-sleep
-      time_alarm = alarm.time.TimeAlarm(
-        monotonic_time=time.monotonic()+update_time)
-      alarm.light_sleep_until_alarms(time_alarm)
+    if hasattr(self._display,"time_to_refresh"):
+      update_time = self._display.time_to_refresh - duration
+      if update_time > 0.0:
+        # might running on battery-power: save some power using light-sleep
+        time_alarm = alarm.time.TimeAlarm(
+          monotonic_time=time.monotonic()+update_time)
+        alarm.light_sleep_until_alarms(time_alarm)
 
   def get_rtc_ext(self):
     """ return external rtc, if available """

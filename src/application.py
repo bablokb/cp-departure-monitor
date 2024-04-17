@@ -55,10 +55,10 @@ class Application:
       hal = builtins.__import__(hal_file,None,None,["impl"],0)
       self.msg("using board-specific implementation")
     except Exception as ex:
-      self.msg(f"!!! error or no board specific HAL: {ex}. Trouble ahead !!!")
+      self.msg(f"info: no board specific HAL")
       hal_file = "hal.hal_default"
       hal = builtins.__import__(hal_file,None,None,["impl"],0)
-      self.msg("using default implementation")
+      self.msg("info: using default implementation from HalBase")
     return hal
 
   # --- hardware setup   -----------------------------------------------------
