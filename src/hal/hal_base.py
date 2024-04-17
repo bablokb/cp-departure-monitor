@@ -7,7 +7,7 @@
 # Author: Bernhard Bablok
 # License: GPL3
 #
-# Website: https://github.com/bablokb/cp-departure-monitor
+# Website: https://github.com/bablokb/pico-e-ink-weather
 # ----------------------------------------------------------------------------
 
 import board
@@ -69,9 +69,7 @@ class HalBase:
   def led(self,value,color=[255,0,0]):
     """ set status LED/Neopixel """
     self._init_led()
-    if hasattr(self,'_led'):
-      self._led.value = value
-    elif hasattr(self,'_pixel'):
+    if hasattr(self,'_pixel'):
       if hasattr(self,'_pixel_poweroff'):
         self._pixel_poweroff.value = not value
       if value:
@@ -80,6 +78,8 @@ class HalBase:
       elif not hasattr(self,'_pixel_poweroff'):
         self._pixel.fill(0)
         self._pixel.show()
+    elif hasattr(self,'_led'):
+      self._led.value = value
 
   def bat_level(self):
     """ return battery level """
