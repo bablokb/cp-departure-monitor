@@ -79,21 +79,28 @@ class DepMon(Application):
     if  key_nr == DepMon.KEY_RIGHT:
       if c_index < len(app_config.stations)-1:
         self.data["station_index"] += 1
-        try:
-          if hasattr(alarm,'sleep_memory'):
-            alarm.sleep_memory[0] = self.data["station_index"]
-        except:
-          pass
+      else:
+        self.data["station_index"] = 0     # wrap-around
+
       self.data["row"] = 0
+      try:
+        if hasattr(alarm,'sleep_memory'):
+          alarm.sleep_memory[0] = self.data["station_index"]
+      except:
+        pass
+
     elif key_nr == DepMon.KEY_LEFT:
       if c_index > 0:
         self.data["station_index"] -= 1
-        try:
-          if hasattr(alarm,'sleep_memory'):
-            alarm.sleep_memory[0] = self.data["station_index"]
-        except:
-          pass
+      else:                               # wrap-around
+        self.data["station_index"] = len(app_config.stations)-1
       self.data["row"] = 0
+      try:
+        if hasattr(alarm,'sleep_memory'):
+          alarm.sleep_memory[0] = self.data["station_index"]
+      except:
+        pass
+
     elif key_nr == DepMon.KEY_DOWN:
       self.data["row"] += UI_SETTINGS.ROWS
       if self.data["row"] > n_departures-UI_SETTINGS.ROWS:
