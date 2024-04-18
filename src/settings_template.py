@@ -38,10 +38,17 @@ def _get_rtc_ext():
   # currently not supported/unused
   return None
 
+def _reset():
+  """ reset device (workaround for MemoryError e.g. on Pico-W) """
+  import supervisor
+  supervisor.reload()
+
 # add functions as attributes
 hw_config.DISPLAY     = _get_display
 hw_config.get_keys    = _get_keys
 hw_config.get_rtc_ext = _get_rtc_ext
+#hw_config.reset_if_needed = _reset
+
 
 # app configuration   --------------------------------------------------------
 
