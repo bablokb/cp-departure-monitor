@@ -24,11 +24,11 @@ secrets.channel   = 6                      # optional: use fixed channel
 # hardware configuration (optional)  -----------------------------------------
 
 hw_config = Settings()
-def _get_display():
+def _get_display(hal):
   from blinka_displayio_pygamedisplay import PyGameDisplay
   return PyGameDisplay(width=296,height=128,
                        native_frames_per_second=1)
-def _get_keys():
+def _get_keys(hal):
   """ return list of pin-numbers for up, down, left, right """
   # format is (active-state,[up,down,left,right])
   # return (False,[board.GPa,board.GPb,board.GPc,board.GPd])

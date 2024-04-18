@@ -7,7 +7,7 @@
 # Author: Bernhard Bablok
 # License: GPL3
 #
-# Website: https://github.com/bablokb/pico-e-ink-weather
+# Website: https://github.com/bablokb/cp-departure-monitor
 # ----------------------------------------------------------------------------
 
 import board
@@ -103,7 +103,7 @@ class HalBase:
       self._display = self._get_attrib('DISPLAY')
       if callable(self._display):
         # from hw_config!
-        self._display = self._display()
+        self._display = self._display(self)
     return self._display
 
   def show(self,content):
@@ -156,6 +156,6 @@ class HalBase:
     """ return list of pin-numbers for up, down, left, right """
     # format is (active-state,[key1,...])
     try:
-      return hw_config.get_keys()
+      return hw_config.get_keys(self)
     except:
       return None
