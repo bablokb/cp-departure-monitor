@@ -51,6 +51,7 @@ class DepMon(Application):
 
   def __init__(self):
     """ constructor """
+    self._evqueue = None
     ui_provider   = UIProvider(debug=DEBUG)
     data_provider = DataProvider(debug=DEBUG)
     super().__init__(data_provider,ui_provider,with_rtc=False,debug=DEBUG)
@@ -162,10 +163,11 @@ class DepMon(Application):
   def run_cp(self):
     """ main-loop for normal environment """
 
-    if self.keys:
+    if self.keys and self._evqueue is None:
       keys = keypad.Keys(self.keys[1],
                          value_when_pressed=self.keys[0],pull=True,
                          interval=0.1,max_events=4)
+      self._evqueue = keys.events
 
     # track time of inactivity for automatic shutdown
     self._last_key_time = time.monotonic()
@@ -175,10 +177,10 @@ class DepMon(Application):
       self.run()
       if self.keys:
         # clear pending key-events (i.e. keys pressed during self.run())
-        keys.events.clear()
+        self._evqueue.clear()
         self.msg("polling for keys...")
         while time.monotonic()-start < app_config.upd_time:
-          event = keys.events.get()
+          event = self._evqueue.get()
           if event and event.pressed:
             self._last_key_time = time.monotonic()
             self.process_keys(event.key_number)
@@ -201,7 +203,7 @@ class DepMon(Application):
 
 app = DepMon()
 exc_count = 0
-exc_max = getattr(app_config,"error_count",1024)
+exc_max = getattr(app_config,"error_count",1)
 
 # retry even on error for at least error_count times
 while exc_count < exc_max:
