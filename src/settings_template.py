@@ -54,6 +54,8 @@ hw_config.get_rtc_ext = _get_rtc_ext
 
 app_config = Settings()
 app_config.debug = True
+app_config.error_count = 2           # retries before reset/stop
+app_config.error_reset = True        # reset or stop
 
 #app_config.stations: a list of tuples with the following fields
 #  station-ID of departure

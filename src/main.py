@@ -200,7 +200,26 @@ class DepMon(Application):
 # --- main application code   -------------------------------------------------
 
 app = DepMon()
-if app.is_pygame:
-  app.run_pygame()
+exc_count = 0
+exc_max = getattr(app_config,"error_count",1024)
+
+# retry even on error for at least error_count times
+while exc_count < exc_max:
+  try:
+    if app.is_pygame:
+      app.run_pygame()
+    else:
+      app.run_cp()
+  except Exception as ex:
+    exc_count += 1
+    app.msg(f"exception {exc_count} occured: {ex}")
+
+# restart or end program
+app.msg(f"exception count reached {exc_max}")
+if getattr(app_config,"error_reset",False):
+  app.msg("forcing reset of device")
+  import supervisor
+  supervisor.reload()
 else:
-  app.run_cp()
+  app.msg("app_config.error_reset unset or False. Stopping!")
+  app.shutdown()
