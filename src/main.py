@@ -216,12 +216,12 @@ while exc_count < exc_max:
     exc_count += 1
     app.msg(f"exception {exc_count} occured: {ex}")
 
-# restart or end program
-app.msg(f"exception count reached {exc_max}")
-if getattr(app_config,"error_reset",False):
-  app.msg("forcing reset of device")
-  import supervisor
-  supervisor.reload()
-else:
-  app.msg("app_config.error_reset unset or False. Stopping!")
-  app.shutdown()
+    # restart or end program
+    app.msg(f"exception count reached {exc_max}")
+    if getattr(app_config,"error_reset",False):
+      app.msg("forcing reset of device")
+      import supervisor
+      supervisor.reload()
+    else:
+      app.msg("app_config.error_reset unset or False. Stopping!")
+      raise ex
