@@ -133,6 +133,9 @@ class DepmonUIProvider:
   def create_ui(self,display):
     """ create ui """
 
+    if self._view:
+      return self._view
+
     from adafruit_bitmap_font import bitmap_font
     from adafruit_display_text import label as label
     from adafruit_display_shapes.line import Line
