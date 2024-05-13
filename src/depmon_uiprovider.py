@@ -35,6 +35,9 @@ class DepmonUIProvider:
     self._name   = None
     self._update = None
 
+    if not hasattr(app_config,'replace'):
+      self._replace = lambda text: text
+
   # --- print debug-message   ------------------------------------------------
 
   def msg(self,text):
