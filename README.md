@@ -101,6 +101,34 @@ To install the software, the following steps are necessary:
   5. Add a file `settings.py` to your `CIRCUITPY`-drive (see next section)
 
 
+PC/Laptop/Raspi with CircuitPython
+----------------------------------
+
+Installation and usage for normal systems is a bit more complicated,
+mainly because the graphical environment is not up to the latest
+standard.
+
+The following commands install the environment (you can reuse the
+virtual environment from the commandline tools, i.e. skip the first command):
+
+    python3 -m venv .venv_dp/
+    source .venv_dp/bin/activate
+
+    pip3 install blinka-displayio-pygamedisplay \
+                 adafruit-circuitpython-display-text \
+                 adafruit-circuitpython-bitmap-font \
+                 adafruit-circuitpython-display-shapes \
+                 json-stream
+
+    cp -a misc/vectorio .venv_dp/lib/python*/site-packages
+
+To start the departure monitor, use these commands:
+
+    source .venv_dp/bin/activate   # if not already done
+    cd src
+    python3 ./main.py
+
+
 Configuration
 -------------
 
