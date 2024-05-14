@@ -58,7 +58,7 @@ In this example `(.venv_dp)` is part of the shell-prompt, this may
 be different on your system.
 
 The search is fuzzy and returns a list of possible matches. Usually the
-first match the one that you want/need. Sometimes there are multiple
+first match is the one that you want/need. Sometimes there are multiple
 IDs for the same location (e.g. for main stations). Here you have to
 experiment and test which one is the best for your needs.
 
@@ -98,7 +98,8 @@ To install the software, the following steps are necessary:
   2. Copy all files *below* `src/` to the `CIRCUITPY`-drive
   3. Install circup: `pip3 install circup`
   4. Run `circup --path=path-to-your device install -r requirements.txt`
-  5. Add a file `settings.py` to your `CIRCUITPY`-drive (see next section)
+  5. Add a file `settings.py` to your `CIRCUITPY`-drive
+     (see section 'Configuration' below)
 
 
 PC/Laptop/Raspi with CircuitPython
@@ -144,7 +145,7 @@ environment.
   - application settings (stations and so on)
 
 The project provides a sample settings-file in `src/settings_template.py`.
-Copy this file to `settings.py` and adapt it to your specific situation.
+Copy this file to `src/settings.py` and adapt it to your specific situation.
 
 The settings-file allows to configure multiple departure stations. Using
 the left/right keys you can scroll through the stations. The up/down-keys
