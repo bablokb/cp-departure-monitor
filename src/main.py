@@ -105,7 +105,7 @@ class DepMon(Application):
     elif key_nr == DepMon.KEY_DOWN:
       self.data["row"] += UI_SETTINGS.ROWS
       if self.data["row"] > n_departures-UI_SETTINGS.ROWS:
-        self.data["row"] = n_departures-UI_SETTINGS.ROWS
+        self.data["row"] = max(0,n_departures-UI_SETTINGS.ROWS)
     elif key_nr == DepMon.KEY_UP:
       self.data["row"] -= UI_SETTINGS.ROWS
       if self.data["row"] < 0:
