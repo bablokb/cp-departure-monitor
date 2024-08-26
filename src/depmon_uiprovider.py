@@ -11,7 +11,6 @@
 # -------------------------------------------------------------------------
 
 import time
-import traceback
 import re
 import gc
 
@@ -208,11 +207,14 @@ class DepmonUIProvider:
 
   # --- handle exception   ---------------------------------------------------
 
-  def handle_exception(self,ex):
+  def handle_exception(self,display,ex):
     """ handle exception """
 
-    traceback.print_exception(ex)
+    # print exception (useful during development)
+    print(ex)
 
-    # optional:
-    #   - save exception here
-    #   - create different content in create_content() if exception occured
+    try:
+      self.create_ui(display)       # make sure that we have the ui
+      self._footerL.text = str(ex)  # update left footer
+    except Exception as e:
+      print(e)                      # can't do more

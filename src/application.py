@@ -106,6 +106,17 @@ class Application:
     self.blink(0.3,color=Application.GREEN)
     self.msg(f"update_data (dataprovider): {duration:f}s")
 
+  # --- handle data-exception   ----------------------------------------------
+
+  def handle_exception(self,ex):
+    """ pass exception of data-provider to ui-provider """
+
+    self.blink(0.3,color=Application.RED)
+    start = time.monotonic()
+    self._uiprovider.handle_exception(self.display,ex)
+    duration = time.monotonic()-start
+    self.msg(f"handle_exception (uiprovider): {duration:f}s")
+
   # --- create ui   ----------------------------------------------------------
 
   def create_ui(self):
@@ -164,9 +175,10 @@ class Application:
   def run(self):
     """ main application logic usually called in a loop """
 
+    # try to update data, catch any exception
     try:
       self.update_data()    # update data before UI is created
       self.create_ui()      # ui-provider should buffer this for performance
       self.update_display()
     except Exception as ex:
-      raise
+      self.handle_exception(ex)
