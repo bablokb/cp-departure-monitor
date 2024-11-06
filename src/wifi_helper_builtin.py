@@ -46,7 +46,7 @@ class WifiHelper:
     import wifi
     self._wifi = wifi
     self.msg("connecting to %s" % secrets.ssid)
-    retries = secrets.retry
+    retries = max(1,secrets.retry)
 
     # check for static client hostname/address
     if hasattr(secrets,'hostname'):
@@ -60,22 +60,25 @@ class WifiHelper:
                                   netmask = mask,
                                   gateway = gatew,
                                   ipv4_dns = dns)
-    while True:
+    while retries > 0:
+      retries -= 1
       try:
         wifi.radio.connect(secrets.ssid,
                           secrets.password,
                            channel = secrets.channel,
                            timeout = secrets.timeout
                            )
-        break
-      except:
-        self.msg("could not connect to %s" % secrets.ssid)
-        retries -= 1
-        if retries == 0:
-          raise
-        time.sleep(1)
-        continue
-    self.msg("connected to %s" % secrets.ssid)
+        if wifi.radio.connected:
+          break
+      except Exception as ex:
+        self.msg(f"connection to {secrets.ssid} failed with {ex}")
+      time.sleep(1)
+      continue
+
+    if retries == 0 and not wifi.radio.connected:
+      raise RuntimeError(f"could not connect to {secrets.ssid}")
+
+    self.msg(f"connected to {secrets.ssid}")
     pool = socketpool.SocketPool(wifi.radio)
     self._requests = adafruit_requests.Session(pool,ssl.create_default_context())
 
