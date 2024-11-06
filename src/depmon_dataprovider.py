@@ -158,9 +158,8 @@ class DepmonDataProvider:
       if updated:
         updated = int(updated)+offset
       self._mem_free("free memory after parsing response")
-      #resp.close()
-      #resp = None
       jdata = None
+      resp.socket.close()
       gc.collect()
       self._mem_free("free memory after closing response")
       dm_data["departures"].append(StatInfo(stat_name,info,updated))
