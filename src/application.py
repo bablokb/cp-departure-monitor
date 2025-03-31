@@ -111,6 +111,7 @@ class Application:
   def handle_exception(self,ex):
     """ pass exception of data-provider to ui-provider """
 
+    self.msg(f"handle_exception (uiprovider): {ex}")
     self.blink(0.3,color=Application.RED)
     start = time.monotonic()
     self._uiprovider.handle_exception(self.display,ex)
