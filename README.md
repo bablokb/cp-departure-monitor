@@ -1,6 +1,8 @@
 Departure-Monitor for Public Transportation in Germany
 ======================================================
 
+**Note: currently defunct, since the DB has shutdown their API.**
+
 This is a departure-monitor for German railway, bus and other stations. It
 displays live-data (if available):
 
