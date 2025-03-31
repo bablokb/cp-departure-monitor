@@ -12,8 +12,6 @@ import board
 from analogio import AnalogIn
 from digitalio import DigitalInOut, Direction
 
-import neopixel
-
 from hal.hal_base import HalBase
 
 class HalMagtag(HalBase):
